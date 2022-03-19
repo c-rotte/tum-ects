@@ -1,0 +1,19 @@
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+  parser:
+    build:
+      context: ./parser
+    network_mode: "host"
+    depends_on:
+      - "mongodb"
+  api:
+    build:
+      context: ./api
+    ports:
+      - 5000:5000
+    network_mode: "host"
+    depends_on:
+      - "mongodb"
