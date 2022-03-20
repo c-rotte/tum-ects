@@ -7,7 +7,7 @@ from database import Database
 from fastapi import FastAPI, HTTPException
 from typing import Optional
 
-mongodb_connection = os.getenv("MONGODB", "mongodb+srv://admin:cbw9ibz6uxmu4gg6gtmx7w8wqj4u2g8wno6h@tum-ects.bra5g.mongodb.net/test")
+mongodb_connection = os.getenv("MONGODB", "mongodb://localhost:27017")
 
 print("Connecting to MongoDB...")
 database = Database(mongodb_connection)
