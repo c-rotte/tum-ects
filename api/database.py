@@ -13,6 +13,21 @@ class Database:
             return
         self.database = self.client["ects"]
 
+    def get_all_degree_ids(self):
+        result = self.database["degrees"].aggregate([
+            {"$group": {
+                "_id": "null",
+                "degree_ids": {
+                    "$addToSet": "$info.degree_id"
+                }
+            }},
+            {"$project": {"_id": 0}}
+        ])
+        result_list = list(result)
+        if not result_list:
+            return None
+        return result_list[0]
+
     def get_degree(self, degree_id, list_modules):
         result = self.database["degrees"].find_one(
             {"info.degree_id": degree_id},
