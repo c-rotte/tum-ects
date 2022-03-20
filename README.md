@@ -19,7 +19,23 @@ Status:
         "crawled_degrees": 8
     }
 
-Degree:
+All degrees:
+
+    http://107.173.251.156:5000/degrees
+
+    {
+        "degree_ids": [
+            "17 722",
+            "11 800",
+            "16 751",
+            "16 761",
+            "16 722",
+            "16 701",
+            "16 804"
+        ]
+    }
+
+Specific degree:
 
     http://107.173.251.156:5000/degree?degree_id=17_722&list_modules=0
 
@@ -38,7 +54,7 @@ Degree:
         }
     }
 
-Module:
+Specific module:
 
     http://107.173.251.156:5000/module?degree_id=17_722&module_id=WZ7374
     
