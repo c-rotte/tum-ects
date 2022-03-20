@@ -42,7 +42,7 @@ async def read_status():
 async def read_degrees():
     result = database.get_all_degree_ids()
     if not result:
-        raise HTTPException(status_code=404, detail="degree not found")
+        raise HTTPException(status_code=404, detail="no degrees found")
     return result
 
 
