@@ -7,11 +7,11 @@
 
     docker-compose up
 
-The api will be available at `localhost:5000`.
+The api will be available at `localhost:5000`. The parser needs a few hours to collect all degrees.
 
 **Exemplary call:**
 
-    http://localhost:5000/module?degree_id=11_800&module_id=WZ2755
+    http://107.173.251.156:5000/module?degree_id=11_800&module_id=WZ2755
     
     {
     
