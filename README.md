@@ -54,7 +54,7 @@ Module:
  
 Degrees which contain a given module:
 
-    http://127.0.0.1:8000/parents?module_id=WZ2755
+    http://107.173.251.156:5000/parents?module_id=WZ2755
 
     {
         "degree_ids": [
