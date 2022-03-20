@@ -1,6 +1,10 @@
+import functools
 import os
+
+import pymongo.errors
+
 from database import Database
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from typing import Optional
 
 mongodb_connection = os.getenv("MONGODB", "mongodb://localhost:27017")
@@ -15,30 +19,52 @@ if database.connection_error:
 app = FastAPI()
 
 
+@app.exception_handler(pymongo.errors.PyMongoError)
+async def database_exception_handler(_, exc):
+    print(exc)
+    raise HTTPException(status_code=500, detail="internal database error")
+
+
+@app.exception_handler(ValueError)
+async def value_error_handler(_, exc):
+    print(exc)
+    raise HTTPException(status_code=500, detail="internal value error")
+
+
+# request endpoints
+
 @app.get("/")
 async def read_status():
-    try:
-        return database.status()
-    except Exception as e:
-        print(e)
-        return {"error": "invalid database response"}
+    return database.status()
+
+
+@app.get("/degree")
+async def read_degree(degree_id: Optional[str] = None, list_modules: Optional[bool] = False):
+    if not degree_id:
+        raise HTTPException(status_code=400, detail="no degree_id provided")
+    result = database.get_degree(degree_id.replace("_", " "), list_modules)
+    if not result:
+        raise HTTPException(status_code=404, detail="degree not found")
+    return result
 
 
 @app.get("/module")
 async def read_module(degree_id: Optional[str] = None, module_id: Optional[str] = None):
     if not degree_id:
-        return {
-            "error": "no degree_id provided"
-        }
+        raise HTTPException(status_code=400, detail="no degree_id provided")
     if not module_id:
-        return {
-            "error": "no module_id provided"
-        }
-    try:
-        result = database.get_module(degree_id.replace("_", " "), module_id)
-        if not result:
-            return {}
-        return result
-    except Exception as e:
-        print(e)
-        return {"error": "invalid database response"}
+        raise HTTPException(status_code=400, detail="no module_id provided")
+    result = database.get_module(degree_id.replace("_", " "), module_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="module not found")
+    return result
+
+
+@app.get("/parents")
+async def read_parents(module_id: Optional[str] = None):
+    if not module_id:
+        raise HTTPException(status_code=400, detail="no module_id provided")
+    result = database.get_degrees_with_module(module_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="module not found")
+    return result
