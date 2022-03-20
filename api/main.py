@@ -7,7 +7,7 @@ from database import Database
 from fastapi import FastAPI, HTTPException
 from typing import Optional
 
-mongodb_connection = os.getenv("MONGODB", "mongodb://localhost:27017")
+mongodb_connection = os.getenv("MONGODB", "mongodb+srv://admin:cbw9ibz6uxmu4gg6gtmx7w8wqj4u2g8wno6h@tum-ects.bra5g.mongodb.net/test")
 
 print("Connecting to MongoDB...")
 database = Database(mongodb_connection)
@@ -36,6 +36,14 @@ async def value_error_handler(_, exc):
 @app.get("/")
 async def read_status():
     return database.status()
+
+
+@app.get("/degrees")
+async def read_degrees():
+    result = database.get_all_degree_ids()
+    if not result:
+        raise HTTPException(status_code=404, detail="degree not found")
+    return result
 
 
 @app.get("/degree")
