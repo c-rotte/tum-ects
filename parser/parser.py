@@ -5,11 +5,16 @@ import string
 import requests
 from bs4 import BeautifulSoup
 
+from requests import RequestException
+from retry import retry
+
 from database import Database
+
+from concurrent.futures import ThreadPoolExecutor
 
 
 def add_element_to_dict(dic: dict, elem, parent_keys: [str], new_key: str):
-    '''adds element to nested dict. Creates empty dicts for non-existent parent_keys'''
+    """adds element to nested dict. Creates empty dicts for non-existent parent_keys"""
     current_dic = dic
     for key in parent_keys:
         try:
@@ -26,12 +31,14 @@ class Parser:
     def __init__(self, database: Database):
         self.database = database
 
+    @retry(exceptions=RequestException, tries=10, delay=10)
     def _switch_to_english(self, PSESSIONID):
         """switches the web session to english"""
         requests.post('https://campus.tum.de/tumonline/pl/ui/$ctx/wbOAuth2.language',
                       headers={'cookie': f'PSESSIONID={PSESSIONID}'},
                       data={'language': 'EN'})
 
+    @retry(exceptions=RequestException, tries=10, delay=10)
     def _parse_node(self, pStpStpNr, node_id,
                     GERMAN_PSESSIONID, ENGLISH_PSESSIONID,
                     parent_keys_de, parent_keys_en,
@@ -107,6 +114,7 @@ class Parser:
                              module_accumulator_de,
                              module_accumulator_en)
 
+    @retry(exceptions=RequestException, tries=10, delay=10)
     def _get_for_pStpStpNr(self, pStpStpNr):
         """returns a list of all courses in the given degree and a dict containing the curriculum of the degree"""
         GERMAN_PSESSIONID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=64))
@@ -187,11 +195,9 @@ class Parser:
         self.database.add_curriculum(degree_info_de, language='german')
         self.database.add_curriculum(degree_info_en, language='english')
 
-    def run(self):
+    def run(self, max_workers=1):
+        executor = ThreadPoolExecutor(max_workers=max_workers)
         # check all numbers
         for pStpStpNr in range(0, 10000):
-            try:
-                self._process_pStpStpNr(pStpStpNr)
-            except Exception as e:
-                return e
-        return None
+            executor.submit(self._process_pStpStpNr, pStpStpNr)
+        executor.shutdown(wait=True)

@@ -36,7 +36,7 @@ Status:
 
 All degree versions:
 
-    http://107.173.251.156:5000/pStpStpNrs&lanugage=english
+    http://107.173.251.156:5000/pStpStpNrs&language=english
 
     {
         "pStpStpNrs": [

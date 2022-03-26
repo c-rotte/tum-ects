@@ -8,6 +8,7 @@ services:
     container_name: tum-ects-parser
     environment:
       - MONGODB=mongodb://tum-ects-mongodb:27017
+      - MAX_WORKERS=1
     depends_on:
       - "mongodb"
   api:
