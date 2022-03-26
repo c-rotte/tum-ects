@@ -5,7 +5,7 @@
     
 **2) Create and run the containers**
 
-    docker-compose up
+    docker-compose up -d
 
 The api will be available at `localhost:5000`. The parser needs a few hours to collect all degrees.
 
@@ -14,6 +14,8 @@ The api will be available at `localhost:5000`. The parser needs a few hours to c
 **Notes:**
 
 Every degree potentially has multiple versions and thus curricula / module details. The Bachelor's Informatics Program, for example, has multiple versions which all have the `degree_id` 17_030. These versions can be uniquely identified using their `pStpStpNr`. Thus, the `pStpStpNr` is used as the primary identifier for all api calls. 
+
+The `language` can either be `german` or `english`. The default is `english`.
 
 ***
 
