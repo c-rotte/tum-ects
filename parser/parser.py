@@ -189,7 +189,7 @@ class Parser:
 
     def run(self):
         # check all numbers
-        for pStpStpNr in range(292, 10000):
+        for pStpStpNr in range(0, 10000):
             try:
                 self._process_pStpStpNr(pStpStpNr)
             except Exception as e:
