@@ -49,7 +49,7 @@ async def read_status():
 
 @app.get("/pStpStpNrs")
 async def read_pStpStpNrs(language: Optional[str] = 'english'):
-    result = database.get_all_pStpStpNrs()
+    result = database.get_all_pStpStpNrs(language)
     if not result:
         raise HTTPException(status_code=404, detail="no pStpStpNrs found")
     return result
