@@ -11,12 +11,12 @@ class Database:
         except Exception as e:
             self.connection_error = e
             return
-        self.database = self.client['tum']
+        self.database = self.client["tum"]
 
-    def get_all_pStpStpNrs(self, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
+    def get_all_pStpStpNrs(self, language="english"):
+        if language not in ["english", "german"]:
+            raise ValueError(f"invalid curriculum language: {language}")
+        result = self.database[f"curricula-{language}"].aggregate([
             {"$group": {
                 "_id": "null",
                 "pStpStpNrs": {
@@ -30,28 +30,28 @@ class Database:
             return None
         return result_list[0]
 
-    def get_curriculum(self, pStpStpNr, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].find_one(
+    def get_curriculum(self, pStpStpNr, language="english"):
+        if language not in ["english", "german"]:
+            raise ValueError(f"invalid curriculum language: {language}")
+        result = self.database[f"curricula-{language}"].find_one(
             {"pStpStpNr": pStpStpNr},
             {"_id": 0, "curriculum": 1}
         )
         return result
 
-    def get_modules(self, pStpStpNr, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].find_one(
+    def get_modules(self, pStpStpNr, language="english"):
+        if language not in ["english", "german"]:
+            raise ValueError(f"invalid curriculum language: {language}")
+        result = self.database[f"curricula-{language}"].find_one(
             {"pStpStpNr": pStpStpNr},
             {"_id": 0, "modules": 1}
         )
         return result
 
-    def get_module(self, pStpStpNr, module_id, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
+    def get_module(self, pStpStpNr, module_id, language="english"):
+        if language not in ["english", "german"]:
+            raise ValueError(f"invalid curriculum language: {language}")
+        result = self.database[f"curricula-{language}"].aggregate([
             {"$match": {
                 "pStpStpNr": pStpStpNr,
                 "modules.module_id": module_id
@@ -67,10 +67,10 @@ class Database:
             return None
         return result_list[0]["module"]
 
-    def get_pStpStpNrs_with_module(self, module_id, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
+    def get_pStpStpNrs_with_module(self, module_id, language="english"):
+        if language not in ["english", "german"]:
+            raise ValueError(f"invalid curriculum language: {language}")
+        result = self.database[f"curricula-{language}"].aggregate([
             {"$match": {
                 "modules.module_id": module_id
             }},
@@ -87,10 +87,10 @@ class Database:
             return None
         return result_list[0]
 
-    def get_pStpStpNrs_with_degree(self, degree_id, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
+    def get_pStpStpNrs_with_degree(self, degree_id, language="english"):
+        if language not in ["english", "german"]:
+            raise ValueError(f"invalid curriculum language: {language}")
+        result = self.database[f"curricula-{language}"].aggregate([
             {"$match": {
                 "degree_id": degree_id
             }},

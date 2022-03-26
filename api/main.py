@@ -48,7 +48,7 @@ async def read_status():
 
 
 @app.get("/pStpStpNrs")
-async def read_pStpStpNrs(language: Optional[str] = 'english'):
+async def read_pStpStpNrs(language: Optional[str] = "english"):
     result = database.get_all_pStpStpNrs(language)
     if not result:
         raise HTTPException(status_code=404, detail="no pStpStpNrs found")
@@ -56,7 +56,7 @@ async def read_pStpStpNrs(language: Optional[str] = 'english'):
 
 
 @app.get("/curriculum")
-async def read_curriculum(pStpStpNr: Optional[int] = None, language: Optional[str] = 'english'):
+async def read_curriculum(pStpStpNr: Optional[int] = None, language: Optional[str] = "english"):
     if not pStpStpNr:
         raise HTTPException(status_code=400, detail="no pStpStpNr provided")
     result = database.get_curriculum(pStpStpNr, language)
@@ -66,7 +66,7 @@ async def read_curriculum(pStpStpNr: Optional[int] = None, language: Optional[st
 
 
 @app.get("/modules")
-async def read_modules(pStpStpNr: Optional[int] = None, language: Optional[str] = 'english'):
+async def read_modules(pStpStpNr: Optional[int] = None, language: Optional[str] = "english"):
     if not pStpStpNr:
         raise HTTPException(status_code=400, detail="no pStpStpNr provided")
     result = database.get_modules(pStpStpNr, language)
@@ -78,7 +78,7 @@ async def read_modules(pStpStpNr: Optional[int] = None, language: Optional[str] 
 @app.get("/module")
 async def read_module(pStpStpNr: Optional[int] = None,
                       module_id: Optional[str] = None,
-                      language: Optional[str] = 'english'):
+                      language: Optional[str] = "english"):
     if not pStpStpNr:
         raise HTTPException(status_code=400, detail="no pStpStpNr provided")
     if not module_id:
@@ -90,7 +90,7 @@ async def read_module(pStpStpNr: Optional[int] = None,
 
 
 @app.get("/parents")
-async def read_parents(module_id: Optional[str] = None, language: Optional[str] = 'english'):
+async def read_parents(module_id: Optional[str] = None, language: Optional[str] = "english"):
     if not module_id:
         raise HTTPException(status_code=400, detail="no module_id provided")
     result = database.get_pStpStpNrs_with_module(module_id, language)
@@ -99,8 +99,8 @@ async def read_parents(module_id: Optional[str] = None, language: Optional[str] 
     return result
 
 
-@app.get('/degrees')
-async def read_degrees(degree_id: Optional[str] = None, language: Optional[str] = 'english'):
+@app.get("/degrees")
+async def read_degrees(degree_id: Optional[str] = None, language: Optional[str] = "english"):
     if not degree_id:
         raise HTTPException(status_code=400, detail="no degree_id provided")
     result = database.get_pStpStpNrs_with_degree(degree_id=degree_id.replace("_", " "), language=language)
