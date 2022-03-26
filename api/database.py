@@ -11,7 +11,7 @@ class Database:
         except Exception as e:
             self.connection_error = e
             return
-        self.database = self.client["ects"]
+        self.database = self.client['tum']
 
     def get_all_degree_ids(self):
         result = self.database["degrees"].aggregate([
@@ -33,6 +33,16 @@ class Database:
             {"info.degree_id": degree_id},
             {"_id": 0} if list_modules else {"_id": 0, "info.courses": 0}
         )
+        return result
+
+    def get_curriculum(self, degree_id, language='english'):
+        if language not in ['english', 'german']:
+            raise ValueError(f'invalid curriculum language: {language}')
+        result = self.database[f'curricula-{language}'].find_one(
+            {'degree_id': degree_id},
+            {'_id': 0, 'curriculum': 1}
+        )
+        print(result)
         return result
 
     def get_module(self, degree_id, module_id):

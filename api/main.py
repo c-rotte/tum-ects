@@ -76,3 +76,16 @@ async def read_parents(module_id: Optional[str] = None):
     if not result:
         raise HTTPException(status_code=404, detail="module not found")
     return result
+
+
+@app.get('/curriculum')
+async def read_curriculum(degree_id: Optional[str] = None, language: Optional[str] = 'english'):
+    if not degree_id:
+        raise HTTPException(status_code=400, detail="no degree_id provided")
+    try:
+        result = database.get_curriculum(degree_id=degree_id.replace("_", " "), language=language)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="invalid language")
+    if not result:
+        raise HTTPException(status_code=404, detail="degree not found")
+    return result
