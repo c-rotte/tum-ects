@@ -5,76 +5,128 @@
     
 **2) Create and run the containers**
 
-    docker-compose up
+    docker-compose up -d
 
 The api will be available at `localhost:5000`. The parser needs a few hours to collect all degrees.
 
+***
+
+**Notes:**
+
+Every degree potentially has multiple versions and thus curricula / module details. The Bachelor's Informatics Program, for example, has multiple versions which all have the `degree_id` 17_030. These versions can be uniquely identified using their `pStpStpNr`. Thus, the `pStpStpNr` is used as the primary identifier for all api calls. 
+
+The `language` can either be `german` or `english`. The default is `english`.
+
+***
+
 **Exemplary calls:**
+
+(**Warning**: Do not use `107.173.251.156` in your application, it is just a low-end server)
 
 Status:
 
     http://107.173.251.156:5000
     
     {
-        "crawled_degrees": 8
-    }
-
-All degrees:
-
-    http://107.173.251.156:5000/degrees
-
-    {
-        "degree_ids": [
-            "17 722",
-            "11 800",
-            "16 751",
-            "16 761",
-            "16 722",
-            "16 701",
-            "16 804"
-        ]
-    }
-
-Specific degree:
-
-    http://107.173.251.156:5000/degree?degree_id=17_722&list_modules=0
-
-    {
-        "pStpStpNr": 290,
-        "info": {
-        "degree_id": "17 722",
-        "title": {
-            "german": "[20061] Bachelorstudiengang Agrarwissenschaften und Gartenbauwissenschaften",
-            "english": "[20061] Agricultural Science and Horticultural Science"
-        },
-            "subtitle": {
-                "german": "17 722 Agrarwissenschaften und Gartenbauwissenschaften (20061, Bachelorstudium, auslaufend)",
-                "english": "17 722 Agricultural Science and Horticultural Science (20061, Bachelor's program, discontinued)"
-            }
+        "crawled_degrees": {
+            "german": 1,
+            "english": 1
         }
     }
 
-Specific module:
+All degree versions:
 
-    http://107.173.251.156:5000/module?degree_id=17_722&module_id=WZ7374
-    
-    {
-        "module_id": "WZ7374",
-        "title": {
-            "german": "[WZ7374] Biologie 3 + 4",
-            "english": "[WZ7374] Biology 3 + 4"
-        },
-        "ects": 5.0,
-        "weighting_factor": 1.0
-    }
- 
-Degrees which contain a given module:
-
-    http://107.173.251.156:5000/parents?module_id=WZ2755
+    http://107.173.251.156:5000/pStpStpNrs&lanugage=english
 
     {
-        "degree_ids": [
-            "11 800"
+        "pStpStpNrs": [
+            292
         ]
     }
 
+Specific degree version:
+
+    http://107.173.251.156:5000/degree?pStpStpNr=292&language=english
+
+    {
+        "degree_id": "16 751",
+        "title": "[20081] Forestry and Wood Science",
+        "subtitle": "16 751 Forestry and Wood Science (20081, Master's program, discontinued)",
+        "curriculum_id": "20081",
+        "pStpStpNr": 292
+    }
+
+Curriculum of a degree version:
+
+    http://107.173.251.156:5000/curriculum?pStpStpNr=292?language=english
+    
+    {
+        "curriculum": {
+            "[20081] Forestry and Wood Science": {
+                "Required Modules": {
+                    "WZ4004": {
+                        "module_id": "WZ4004",
+                        "ects": 5.0,
+                        "weighting_factor": 1.0,
+                        "title": "[WZ4004] Methods of Research in Forest and Wood Science"
+                    },
+                    "WZ4005": {
+                        "module_id": "WZ4005",
+                        "ects": 5.0,
+                        "weighting_factor": 1.0,
+                        "title": "[WZ4005] Lecture Series"
+                    }
+                },
+                "Required Elective Optional Courses" : {...},
+                "WZ4001": {...},
+                "WZ4002": {...}
+    }
+ 
+Modules of a degree version (flattened curriculum):
+
+    http://107.173.251.156:5000/modules?pStpStpNr=292?language=english
+    
+    {
+        "modules": [
+            {
+                "module_id": "WZ4004",
+                "ects": 5.0,
+                "weighting_factor": 1.0,
+                "title": "[WZ4004] Methods of Research in Forest and Wood Science"
+            },
+            {...},
+            {...},
+            ...
+        ]
+    }
+
+Specific module of a degree version:
+
+    http://107.173.251.156:5000/module?pStpStpNr=292&module_id=WZ4004&language=english
+
+    {
+        "module_id": "WZ4004",
+        "ects": 5.0,
+        "weighting_factor": 1.0,
+        "title": "[WZ4004] Methods of Research in Forest and Wood Science"
+    }
+
+Degree versions which contain a given module (sorted):
+    
+    http://107.173.251.156:5000/parents?module_id=WZ4004&language=english
+
+    {
+        "pStpStpNrs": [
+            292
+        ]
+    }
+
+All versions of a degree (sorted):
+
+    http://107.173.251.156:5000/degrees?degree_id=16_751&language=english
+
+    {
+        "pStpStpNrs": [
+            292
+        ]
+    }
