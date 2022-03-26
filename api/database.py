@@ -30,6 +30,15 @@ class Database:
             return None
         return result_list[0]
 
+    def get_degree(self, pStpStpNr, language="english"):
+        if language not in ["english", "german"]:
+            raise ValueError(f"invalid curriculum language: {language}")
+        result = self.database[f"curricula-{language}"].find_one(
+            {"pStpStpNr": pStpStpNr},
+            {"_id": 0, "curriculum": 0, "modules": 0}
+        )
+        return result
+
     def get_curriculum(self, pStpStpNr, language="english"):
         if language not in ["english", "german"]:
             raise ValueError(f"invalid curriculum language: {language}")

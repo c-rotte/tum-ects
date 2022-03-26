@@ -55,6 +55,16 @@ async def read_pStpStpNrs(language: Optional[str] = "english"):
     return result
 
 
+@app.get("/degree")
+async def read_degree(pStpStpNr: Optional[int] = None, language: Optional[str] = "english"):
+    if not pStpStpNr:
+        raise HTTPException(status_code=400, detail="no pStpStpNr provided")
+    result = database.get_degree(pStpStpNr, language)
+    if not result:
+        raise HTTPException(status_code=404, detail="curriculum not found")
+    return result
+
+
 @app.get("/curriculum")
 async def read_curriculum(pStpStpNr: Optional[int] = None, language: Optional[str] = "english"):
     if not pStpStpNr:
