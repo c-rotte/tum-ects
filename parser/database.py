@@ -11,16 +11,16 @@ class Database:
         except Exception as e:
             self.connection_error = e
             return
-        self.database = self.client["tum"]
+        self.database = self.client['tum']
 
-    # curriculum collections: "curricula-german" and "curricula-english"
+    # curriculum collections: 'curricula-german' and 'curricula-english'
 
-    def add_curriculum(self, degree_info,  language="english"):
-        if language not in ["english", "german"]:
-            raise ValueError(f"invalid curriculum language: {language}")
-        self.database[f"curricula-{language}"].insert_one(degree_info)
+    def add_curriculum(self, degree_info,  language='english'):
+        if language not in ['english', 'german']:
+            raise ValueError(f'invalid curriculum language: {language}')
+        self.database[f'curricula-{language}'].insert_one(degree_info)
 
-    def remove_curriculum(self, pStpStpNr, language="english"):
-        if language not in ["english", "german"]:
-            raise ValueError(f"invalid curriculum language: {language}")
-        self.database[f"curricula-{language}"].delete_many(filter={"pStpStpNr": pStpStpNr})
+    def remove_curriculum(self, pStpStpNr, language='english'):
+        if language not in ['english', 'german']:
+            raise ValueError(f'invalid curriculum language: {language}')
+        self.database[f'curricula-{language}'].delete_many(filter={'pStpStpNr': pStpStpNr})
