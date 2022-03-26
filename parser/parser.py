@@ -32,8 +32,11 @@ class Parser:
                       headers={"cookie": f"PSESSIONID={PSESSIONID}"},
                       data={"language": "EN"})
 
-    def _parse_node(self, pStpStpNr, node_id, GERMAN_PSESSIONID, ENGLISH_PSESSIONID, parent_keys_de, parent_keys_en,
-                    curriculum_de, curriculum_en):
+    def _parse_node(self, pStpStpNr, node_id,
+                    GERMAN_PSESSIONID, ENGLISH_PSESSIONID,
+                    parent_keys_de, parent_keys_en,
+                    curriculum_de, curriculum_en,
+                    module_accumulator_de, module_accumulator_en):
         """parses a single node in the curriculum tree. For courses: appends it to the list of
         courses, adds course info to curriculum dict. Everything else: adds node in curriculum dict and descents"""
 
@@ -83,6 +86,10 @@ class Parser:
 
                 add_element_to_dict(curriculum_de, module_info_de, parent_keys_de, module_id)
                 add_element_to_dict(curriculum_en, module_info_en, parent_keys_en, module_id)
+
+                module_accumulator_de.append(module_info_de)
+                module_accumulator_en.append(module_info_en)
+
                 continue
 
             # parse rule node and add to dict, recursively continue with rule node
@@ -96,7 +103,9 @@ class Parser:
                              parent_keys_de + [node_german.span.text.strip()],
                              parent_keys_en + [node_english.span.text.strip()],
                              curriculum_de,
-                             curriculum_en)
+                             curriculum_en,
+                             module_accumulator_de,
+                             module_accumulator_en)
 
     def _get_for_pStpStpNr(self, pStpStpNr):
         """returns a list of all courses in the given degree and a dict containing the curriculum of the degree"""
@@ -143,6 +152,8 @@ class Parser:
 
         curriculum_de = {title_german: {}}
         curriculum_en = {title_english: {}}
+        module_accumulator_de = []
+        module_accumulator_en = []
 
         if main_node:
             main_node_id = main_node.get("id").replace("kn", "").replace("-toggle", "")
@@ -153,16 +164,18 @@ class Parser:
                              [title_german],  # acc for the keys in recursive descent, used for german curriculum
                              [title_english],  # acc for the keys in recursive descent, used for english curriculum
                              curriculum_de,  # dict used to store the german curriculum
-                             curriculum_en)  # dict used to store the english curriculum
+                             curriculum_en,  # dict used to store the english curriculum
+                             module_accumulator_de, module_accumulator_en)  # two lists used to accumulate the modules
         degree_info_de["curriculum"] = curriculum_de
         degree_info_en["curriculum"] = curriculum_en
+        degree_info_de["modules"] = module_accumulator_de
+        degree_info_en["modules"] = module_accumulator_en
         return degree_info_de, degree_info_en
 
     def _process_pStpStpNr(self, pStpStpNr):
         print(f"Checking pStpStpNr {pStpStpNr}...")
         degree_info_de, degree_info_en = self._get_for_pStpStpNr(pStpStpNr)
         # remove old data
-        self.database.remove_degree(pStpStpNr)
         self.database.remove_curriculum(pStpStpNr, language="german")
         self.database.remove_curriculum(pStpStpNr, language="english")
         if not degree_info_de or not degree_info_en:
@@ -175,7 +188,7 @@ class Parser:
 
     def run(self):
         # check all numbers
-        for pStpStpNr in range(0, 10000):
+        for pStpStpNr in range(292, 10000):
             try:
                 self._process_pStpStpNr(pStpStpNr)
             except Exception as e:

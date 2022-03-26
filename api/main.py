@@ -5,6 +5,7 @@ import pymongo.errors
 
 from database import Database
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from typing import Optional
 
 mongodb_connection = os.getenv("MONGODB", "mongodb://localhost:27017")
@@ -21,14 +22,22 @@ app = FastAPI()
 
 @app.exception_handler(pymongo.errors.PyMongoError)
 async def database_exception_handler(_, exc):
+    """default exception handler for database errors"""
     print(exc)
-    raise HTTPException(status_code=500, detail="internal database error")
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal database error"}
+    )
 
 
 @app.exception_handler(ValueError)
 async def value_error_handler(_, exc):
+    """default exception handler for value errors"""
     print(exc)
-    raise HTTPException(status_code=500, detail="internal value error")
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc)}
+    )
 
 
 # request endpoints
@@ -38,54 +47,63 @@ async def read_status():
     return database.status()
 
 
-@app.get("/degrees")
-async def read_degrees():
-    result = database.get_all_degree_ids()
+@app.get("/pStpStpNrs")
+async def read_pStpStpNrs(language: Optional[str] = 'english'):
+    result = database.get_all_pStpStpNrs()
     if not result:
-        raise HTTPException(status_code=404, detail="no degrees found")
+        raise HTTPException(status_code=404, detail="no pStpStpNrs found")
     return result
 
 
-@app.get("/degree")
-async def read_degree(degree_id: Optional[str] = None, list_modules: Optional[bool] = False):
-    if not degree_id:
-        raise HTTPException(status_code=400, detail="no degree_id provided")
-    result = database.get_degree(degree_id.replace("_", " "), list_modules)
+@app.get("/curriculum")
+async def read_curriculum(pStpStpNr: Optional[int] = None, language: Optional[str] = 'english'):
+    if not pStpStpNr:
+        raise HTTPException(status_code=400, detail="no pStpStpNr provided")
+    result = database.get_curriculum(pStpStpNr, language)
     if not result:
-        raise HTTPException(status_code=404, detail="degree not found")
+        raise HTTPException(status_code=404, detail="curriculum not found")
+    return result
+
+
+@app.get("/modules")
+async def read_modules(pStpStpNr: Optional[int] = None, language: Optional[str] = 'english'):
+    if not pStpStpNr:
+        raise HTTPException(status_code=400, detail="no pStpStpNr provided")
+    result = database.get_modules(pStpStpNr, language)
+    if not result:
+        raise HTTPException(status_code=404, detail="curriculum not found")
     return result
 
 
 @app.get("/module")
-async def read_module(degree_id: Optional[str] = None, module_id: Optional[str] = None):
-    if not degree_id:
-        raise HTTPException(status_code=400, detail="no degree_id provided")
+async def read_module(pStpStpNr: Optional[int] = None,
+                      module_id: Optional[str] = None,
+                      language: Optional[str] = 'english'):
+    if not pStpStpNr:
+        raise HTTPException(status_code=400, detail="no pStpStpNr provided")
     if not module_id:
         raise HTTPException(status_code=400, detail="no module_id provided")
-    result = database.get_module(degree_id.replace("_", " "), module_id)
+    result = database.get_module(pStpStpNr, module_id, language)
     if not result:
         raise HTTPException(status_code=404, detail="module not found")
     return result
 
 
 @app.get("/parents")
-async def read_parents(module_id: Optional[str] = None):
+async def read_parents(module_id: Optional[str] = None, language: Optional[str] = 'english'):
     if not module_id:
         raise HTTPException(status_code=400, detail="no module_id provided")
-    result = database.get_degrees_with_module(module_id)
+    result = database.get_pStpStpNrs_with_module(module_id, language)
     if not result:
         raise HTTPException(status_code=404, detail="module not found")
     return result
 
 
-@app.get('/curriculum')
-async def read_curriculum(degree_id: Optional[str] = None, language: Optional[str] = 'english'):
+@app.get('/degrees')
+async def read_degrees(degree_id: Optional[str] = None, language: Optional[str] = 'english'):
     if not degree_id:
         raise HTTPException(status_code=400, detail="no degree_id provided")
-    try:
-        result = database.get_curriculum(degree_id=degree_id.replace("_", " "), language=language)
-    except ValueError:
-        raise HTTPException(status_code=422, detail="invalid language")
+    result = database.get_pStpStpNrs_with_degree(degree_id=degree_id.replace("_", " "), language=language)
     if not result:
         raise HTTPException(status_code=404, detail="degree not found")
     return result

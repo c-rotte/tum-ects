@@ -13,13 +13,8 @@ class Database:
             return
         self.database = self.client['tum']
 
-    def add_degree(self, pStpStpNr, obj):
-        self.database['degrees'].insert_one({'pStpStpNr': pStpStpNr, 'info': obj})
-
-    def remove_degree(self, pStpStpNr):
-        self.database['degrees'].delete_many(filter={'pStpStpNr': pStpStpNr})
-
     # curriculum collections: 'curricula-german' and 'curricula-english'
+
     def add_curriculum(self, degree_info,  language='english'):
         if language not in ['english', 'german']:
             raise ValueError(f'invalid curriculum language: {language}')
