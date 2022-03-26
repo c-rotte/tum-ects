@@ -1,17 +1,25 @@
 services:
   mongodb:
-    image: mongo:4.4.9
-    ports:
-      - 27017:27017
+    image: mongo:4
+    container_name: tum-ects-mongodb
   parser:
     build:
       context: ./parser
-    network_mode: "host"
+    container_name: tum-ects-parser
+    environment:
+      # MONGODB=mongodb://<directory>-mongodb-1:27017
+      - MONGODB=mongodb://tum-ects-mongodb:27017
     depends_on:
       - "mongodb"
   api:
     build:
       context: ./api
-    network_mode: "host"
+    container_name: tum-ects-api
+    ports:
+      # <exposed port>:5000
+      - 5000:5000
+    environment:
+      # MONGODB=mongodb://<directory>-mongodb-1:27017
+      - MONGODB=mongodb://tum-ects-mongodb:27017
     depends_on:
       - "mongodb"
