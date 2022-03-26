@@ -36,7 +36,7 @@ Status:
 
 All degree versions:
 
-    http://107.173.251.156:5000/pStpStpNrs&language=english
+    http://107.173.251.156:5000/pStpStpNrs?language=english
 
     {
         "pStpStpNrs": [
@@ -58,7 +58,7 @@ Specific degree version:
 
 Curriculum of a degree version:
 
-    http://107.173.251.156:5000/curriculum?pStpStpNr=292?language=english
+    http://107.173.251.156:5000/curriculum?pStpStpNr=292&language=english
     
     {
         "curriculum": {
@@ -84,7 +84,7 @@ Curriculum of a degree version:
  
 Modules of a degree version (flattened curriculum):
 
-    http://107.173.251.156:5000/modules?pStpStpNr=292?language=english
+    http://107.173.251.156:5000/modules?pStpStpNr=292&language=english
     
     {
         "modules": [

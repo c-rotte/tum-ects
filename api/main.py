@@ -1,4 +1,3 @@
-import functools
 import os
 
 import pymongo.errors
@@ -22,7 +21,7 @@ app = FastAPI()
 
 @app.exception_handler(pymongo.errors.PyMongoError)
 async def database_exception_handler(_, exc):
-    '''default exception handler for database errors'''
+    """default exception handler for database errors"""
     print(exc)
     return JSONResponse(
         status_code=500,
@@ -32,7 +31,7 @@ async def database_exception_handler(_, exc):
 
 @app.exception_handler(ValueError)
 async def value_error_handler(_, exc):
-    '''default exception handler for value errors'''
+    """default exception handler for value errors"""
     print(exc)
     return JSONResponse(
         status_code=500,
