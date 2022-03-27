@@ -31,14 +31,14 @@ class Parser:
     def __init__(self, database: Database):
         self.database = database
 
-    @retry(exceptions=RequestException, tries=10, delay=10)
+    @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def _switch_to_english(self, PSESSIONID):
         """switches the web session to english"""
         requests.post('https://campus.tum.de/tumonline/pl/ui/$ctx/wbOAuth2.language',
                       headers={'cookie': f'PSESSIONID={PSESSIONID}'},
                       data={'language': 'EN'})
 
-    @retry(exceptions=RequestException, tries=10, delay=10)
+    @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def _parse_node(self, pStpStpNr, node_id,
                     GERMAN_PSESSIONID, ENGLISH_PSESSIONID,
                     parent_keys_de, parent_keys_en,
@@ -114,7 +114,7 @@ class Parser:
                              module_accumulator_de,
                              module_accumulator_en)
 
-    @retry(exceptions=RequestException, tries=10, delay=10)
+    @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def _get_for_pStpStpNr(self, pStpStpNr):
         """returns a list of all courses in the given degree and a dict containing the curriculum of the degree"""
         GERMAN_PSESSIONID = ''.join(random.choices(string.ascii_uppercase + string.digits, k=64))
