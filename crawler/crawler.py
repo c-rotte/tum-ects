@@ -72,4 +72,5 @@ class Crawler:
         for page in range(pages):
             res = requests.get(craft_url(page + 1), headers={'cookie': f'PSESSIONID={p_session_id}'})
             for mapping in parser.parse_mapping_on_page(res.text):
+                mapping[f"full_name_{language_str.lower()}"] = mapping.pop("full_name")
                 yield mapping

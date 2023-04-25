@@ -41,10 +41,18 @@ class TUMDatabase:
             upsert=True
         )
 
-    def upsert_mapping(self, module_id: str, degree_id: str, mapping_data: dict):
+    def upsert_mapping(self, module_id: str, mapping_data: dict):
         """Upsert a module degree mapping into the database."""
+        update_data = {key: value
+                       for key, value in mapping_data.items()
+                       if key not in ['degree_id', 'curriculum_version']}
         self.database.mappings.update_one(
-            {'module_id': module_id, 'degree_id': degree_id},
-            {'$set': mapping_data},
+            {
+                'module_id': module_id,
+                'degree_id': mapping_data['degree_id'],
+                'curriculum_version': mapping_data['curriculum_version']},
+            {
+                '$set': update_data
+            },
             upsert=True
         )

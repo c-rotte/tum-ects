@@ -12,9 +12,12 @@ class Worker:
         self.module_id = module_id
 
     def run(self):
+        # insert english modules names
         for mapping in self.crawler.module_degree_mappings(self.module_id, english=True):
-            degree_id = mapping["degree_id"]
-            self.database.upsert_mapping(self.module_id, degree_id, mapping)
+            self.database.upsert_mapping(self.module_id, mapping)
+        # insert german module names
+        for mapping in self.crawler.module_degree_mappings(self.module_id, english=False):
+            self.database.upsert_mapping(self.module_id, mapping)
 
 
 def run_crawler(database: TUMDatabase, max_workers=1):
