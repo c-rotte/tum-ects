@@ -17,15 +17,17 @@ class Worker:
             pass
 
 
-def run_crawler(self, max_workers=1):
-    for degree in self.crawler.degrees():
+def run_crawler(max_workers=1):
+    crawler = Crawler()
+    # we don't have to parallelize this because it's only one request
+    for degree in crawler.degrees():
         # TODO: add degree to database
         pass
     executor = ThreadPoolExecutor(max_workers=max_workers)
-    # check all numbers
-    for module_id, module_name in self.crawler.modules():
+    # get all module mappings in parallel
+    for module_id, module_name in crawler.modules():
         # TODO: add module to database
-        worker = Worker(self.crawler, self.database, module_id)
+        worker = Worker(crawler, database, module_id)
         executor.submit(worker.run)
     executor.shutdown(wait=True)
 
