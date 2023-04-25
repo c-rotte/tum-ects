@@ -30,7 +30,24 @@ class Crawler:
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def degrees(self) -> dict:
-        """returns a list of all degrees"""
+        """
+        Output: A dictionary of degrees, e.g.:
+        {
+            '12345': {
+                'full_text_en': 'Master of Science in Computer Science [2018]',
+                'short_text_en': 'Computer Science',
+                'full_text_de': 'Master of Science in Informatik [2018]',
+                'short_text_de': 'Master of Science in Informatik',
+            },
+            '67890': {
+                'full_text_en': 'Master of Science in Data Science [2018]',
+                'short_text_en': 'Data Science',
+                'full_text_de': 'Master of Science in Datenwissenschaft [2018]',
+                'short_text_de': 'Master of Science in Datenwissenschaft',
+            },
+            ...
+        }
+        """
         res = requests.get(
             "https://campus.tum.de/tumonline/pl/ui/$ctx/wbModHB.cbShow?"
             "pOrgNr=1&pId=tabIdSPOModules_tabid&pTabContainerId=",
@@ -47,7 +64,7 @@ class Crawler:
         for _, degree_info in german_degrees:
             degree_info["full_text_de"] = degree_info.pop("full_text")
             degree_info["short_text_de"] = degree_info.pop("short_text")
-        all_degree_ids = set().union(english_degrees.keys(), german_degrees.keys())
+        all_degree_ids = english_degrees.keys() | german_degrees.keys()
         return {
             # unionize english and german
             degree_id: dict(english_degrees.get(degree_id, {}), **german_degrees.get(degree_id, {}))
@@ -56,7 +73,14 @@ class Crawler:
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def modules(self) -> Iterator[str, str]:
-        """returns a list of all modules"""
+        """
+        Output: A list of tuples containing module ID, English name, and German name, e.g.:
+        [
+            ('98765', 'Introduction to Data Science', 'Einführung in die Datenwissenschaft'),
+            ('54321', 'Advanced Machine Learning', 'Fortgeschrittenes Maschinelles Lernen'),
+            ...
+        ]
+        """
         res = requests.get(
             f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules',
             headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=True)}'})
@@ -64,14 +88,16 @@ class Crawler:
         for page_index in range(number_of_pages):
             # get the modules on the current page
             res = requests.get(
-                f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules&pPageNr={page_index + 1}',
+                f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules'
+                f'&pPageNr={page_index + 1}&pSort=2',
                 headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=True)}'})
             modules_en = parser.parse_modules_on_page(res.text)
             res = requests.get(
-                f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules&pPageNr={page_index + 1}',
+                f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules'
+                f'&pPageNr={page_index + 1}&pSort=2',
                 headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=False)}'})
             modules_de = parser.parse_modules_on_page(res.text)
-            all_module_ids = set().union(modules_en.keys(), modules_en.keys())
+            all_module_ids = modules_en.keys() | modules_de.keys()
             for module_id in all_module_ids:
                 yield (
                     module_id,
@@ -81,7 +107,30 @@ class Crawler:
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def module_degree_mappings(self, module_id: str) -> Iterator[str, dict]:
-        """returns a list of all degree programs containing the module"""
+        """
+        Output: A list of tuples containing degree ID and mapping information, e.g.:
+        [
+            ('12345', {
+                'full_name_en': 'Master of Science in Computer Science [2018]',
+                'full_name_de': 'Master of Science in Informatik [2018]'
+                'curriculum_version': '20181',
+                'ects': 6.0,
+                'weighting_factor': 1.0,
+                'valid_from': '2022S',
+                'valid_to': None,
+            }),
+            ('67890', {
+                'full_name_en': 'Master of Science in Data Science [2018]',
+                'full_name_de': 'Master of Science in Datenwissenschaft [2018]',
+                'curriculum_version': '20181',
+                'ects': 6.0,
+                'weighting_factor': 1.0,
+                'valid_from': '2021W',
+                'valid_to': '2022W'
+            }),
+            ...
+        ]
+        """
 
         def craft_url(page_nr=1, english=True):
             language_str = "EN" if english else "DE"
@@ -108,7 +157,7 @@ class Crawler:
             mappings_de = parser.parse_mapping_on_page(res.text)
             for degree_id in mappings_de:
                 mappings_de[degree_id]["full_name_de"] = mappings_de[degree_id].pop("full_name")
-            all_degree_ids = set().union(mappings_en.keys(), mappings_de.keys())
+            all_degree_ids = mappings_en.keys() | mappings_de.keys()
             for degree_id in all_degree_ids:
                 yield (
                     degree_id,
