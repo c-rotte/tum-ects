@@ -4,7 +4,7 @@ import bs4
 import json
 
 
-def parse_degrees(text: str) -> list:
+def parse_degrees(text: str) -> dict:
     """parses the degrees from the html response"""
     soup = BeautifulSoup(text, "html.parser")
     all_cdata = soup.find_all(text=lambda tag: isinstance(tag, bs4.CData))
@@ -15,7 +15,22 @@ def parse_degrees(text: str) -> list:
     # remove all control characters
     degrees_json = "".join(c for c in degrees_json if unicodedata.category(c)[0] != "C")
     degrees_json = json.loads(degrees_json, strict=False)
-    return degrees_json["data"]
+
+    def parse_degree(degree_json: dict) -> (str, dict):
+        full_name = degree_json["text"].trim()
+        content = {
+            "full_name": full_name,
+            "short_name": full_name[6:].split("(")[0].trim(),
+            "nr": full_name[6:],
+            "version": full_name.split("[")[1].split("]")[0].trim(),
+        }
+        return degree_json["id"], content
+
+    result = {}
+    for degree_json in degrees_json["data"]:
+        degree_id, degree_data = parse_degree(degree_json)
+        result[degree_id] = degree_data
+    return result
 
 
 def module_page_number(text: str) -> int:
@@ -29,10 +44,11 @@ def module_page_number(text: str) -> int:
     return len(page_select.find_all("option"))
 
 
-def parse_modules_on_page(text: str) -> (str, str):
+def parse_modules_on_page(text: str) -> dict:
     """parses the modules on the given page"""
     soup = BeautifulSoup(text, "lxml")
     table = soup.find("table", {"id": "idModHBTableORG"})
+    result = {}
     for td in table.find("tbody").find_all("td"):
         # get the module id and name
         a_list = td.find_all("a")
@@ -43,7 +59,8 @@ def parse_modules_on_page(text: str) -> (str, str):
             continue
         name = a_list[1].next.string.strip()
         module_id = href.split("pKnotenNr=")[1].split("&")[0]
-        yield module_id, name
+        result[module_id] = name
+    return result
 
 
 def mapping_page_number(text: str) -> int:
@@ -61,6 +78,7 @@ def parse_mapping_on_page(text: str) -> dict:
     """parses the mapping on the given page"""
     soup = BeautifulSoup(text, "lxml")
     tbody = soup.find("table", {"class": "cotable"}).find("tbody")
+    result = {}
     for tr in tbody.find_all("tr"):
         # get the degree program id and name
         td_list = tr.find_all("td")
@@ -78,12 +96,12 @@ def parse_mapping_on_page(text: str) -> dict:
             continue
         # get the pStpStpNr
         degree_id = td_list[2].find("a").get("href").split("pStpStpNr=")[1].split("&")[0]
-        yield {
+        result[degree_id] = {
             "full_name": names[1],
             "curriculum_version": names[2],
             "ects": float(names[5].replace(",", ".")) if names[5] else None,
             "weighting_factor": float(names[8].replace(",", ".")) if names[8] else None,
             "valid_from": names[11],
-            "valid_to": names[12],
-            "degree_id": degree_id
+            "valid_to": names[12]
         }
+    return result

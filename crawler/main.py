@@ -13,35 +13,22 @@ class Worker:
 
     def run(self):
         # insert english modules names
-        for mapping in self.crawler.module_degree_mappings(self.module_id, english=True):
-            self.database.upsert_mapping(self.module_id, mapping)
-        # insert german module names
-        for mapping in self.crawler.module_degree_mappings(self.module_id, english=False):
+        for mapping in self.crawler.module_degree_mappings(self.module_id):
             self.database.upsert_mapping(self.module_id, mapping)
 
 
 def run_crawler(database: TUMDatabase, max_workers=1):
     crawler = Crawler()
     # we don't have to parallelize this because it's only one request
-    # insert english degree names
-    for degree in crawler.degrees(english=True):
-        database.upsert_degree(degree["id"], name_en=degree["text"], name_de=None)
-
-    # insert german degree names
-    for degree in crawler.degrees(english=False):
-        database.upsert_degree(degree["id"], name_en=None, name_de=degree["text"])
+    for degree in crawler.degrees():
+        database.upsert_degree(degree)
 
     executor = ThreadPoolExecutor(max_workers=max_workers)
     # get all module mappings in parallel
-    # insert english module names
-    for module_id, module_name in crawler.modules(english=True):
-        database.upsert_module(module_id, name_en=module_name, name_de=None)
+    for module_id, module_name in crawler.modules():
+        database.upsert_module(module_id, module_name)
         worker = Worker(crawler, database, module_id)
         executor.submit(worker.run)
-
-    # insert german module names
-    for module_id, module_name in crawler.modules(english=False):
-        database.upsert_module(module_id, name_en=None, name_de=module_name)
 
     executor.shutdown(wait=True)
 
