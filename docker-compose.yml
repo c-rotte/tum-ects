@@ -4,8 +4,8 @@ services:
     container_name: tum-ects-mongodb
   parser:
     build:
-      context: ./parser
-    container_name: tum-ects-parser
+      context: ./crawler
+    container_name: tum-ects-crawler
     environment:
       - MONGODB=mongodb://tum-ects-mongodb:27017
       - MAX_WORKERS=1
