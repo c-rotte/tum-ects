@@ -1,7 +1,7 @@
 import pymongo
 
 
-class Database:
+class TUMDatabase:
 
     def __init__(self, mongo_conn):
         try:
@@ -13,14 +13,38 @@ class Database:
             return
         self.database = self.client['tum']
 
-    # curriculum collections: 'curricula-german' and 'curricula-english'
+    def upsert_degree(self, degree_id: str, name_en: str = None, name_de: str = None):
+        """Upsert a degree into the database."""
+        update_data = {}
+        if name_en is not None:
+            update_data['name_en'] = name_en
+        if name_de is not None:
+            update_data['name_de'] = name_de
 
-    def add_curriculum(self, degree_info,  language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        self.database[f'curricula-{language}'].insert_one(degree_info)
+        self.database.degrees.update_one(
+            {'_id': degree_id},
+            {'$set': update_data},
+            upsert=True
+        )
 
-    def remove_curriculum(self, pStpStpNr, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        self.database[f'curricula-{language}'].delete_many(filter={'pStpStpNr': pStpStpNr})
+    def upsert_module(self, module_id: str, name_en: str = None, name_de: str = None):
+        """Upsert a module into the database."""
+        update_data = {}
+        if name_en is not None:
+            update_data['name_en'] = name_en
+        if name_de is not None:
+            update_data['name_de'] = name_de
+
+        self.database.modules.update_one(
+            {'_id': module_id},
+            {'$set': update_data},
+            upsert=True
+        )
+
+    def upsert_mapping(self, module_id: str, degree_id: str, mapping_data: dict):
+        """Upsert a module degree mapping into the database."""
+        self.database.mappings.update_one(
+            {'module_id': module_id, 'degree_id': degree_id},
+            {'$set': mapping_data},
+            upsert=True
+        )
