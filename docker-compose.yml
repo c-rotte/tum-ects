@@ -23,4 +23,5 @@ services:
     environment:
       - DATABASE_PORT=5432
     depends_on:
-      - "mongodb"
+      - "database"
+      - "crawler"
