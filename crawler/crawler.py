@@ -53,17 +53,17 @@ class Crawler:
             "pOrgNr=1&pId=tabIdSPOModules_tabid&pTabContainerId=",
             headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=True)}'})
         english_degrees = parser.parse_degrees(res.text)
-        for _, degree_info in english_degrees:
-            degree_info["full_text_en"] = degree_info.pop("full_text")
-            degree_info["short_text_en"] = degree_info.pop("short_text")
+        for degree_id in english_degrees:
+            english_degrees[degree_id]["full_name_en"] = english_degrees[degree_id].pop("full_name")
+            english_degrees[degree_id]["short_name_en"] = english_degrees[degree_id].pop("short_name")
         res = requests.get(
             "https://campus.tum.de/tumonline/pl/ui/$ctx/wbModHB.cbShow?"
             "pOrgNr=1&pId=tabIdSPOModules_tabid&pTabContainerId=",
             headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=False)}'})
         german_degrees = parser.parse_degrees(res.text)
-        for _, degree_info in german_degrees:
-            degree_info["full_text_de"] = degree_info.pop("full_text")
-            degree_info["short_text_de"] = degree_info.pop("short_text")
+        for degree_id in german_degrees:
+            german_degrees[degree_id]["full_name_de"] = german_degrees[degree_id].pop("full_name")
+            german_degrees[degree_id]["short_name_de"] = german_degrees[degree_id].pop("short_name")
         all_degree_ids = english_degrees.keys() | german_degrees.keys()
         return {
             # unionize english and german
@@ -111,18 +111,14 @@ class Crawler:
         Output: A list of tuples containing degree ID and mapping information, e.g.:
         [
             ('12345', {
-                'full_name_en': 'Master of Science in Computer Science [2018]',
-                'full_name_de': 'Master of Science in Informatik [2018]'
-                'curriculum_version': '20181',
+                'version': '20181',
                 'ects': 6.0,
                 'weighting_factor': 1.0,
                 'valid_from': '2022S',
                 'valid_to': None,
             }),
             ('67890', {
-                'full_name_en': 'Master of Science in Data Science [2018]',
-                'full_name_de': 'Master of Science in Datenwissenschaft [2018]',
-                'curriculum_version': '20181',
+                'version': '20181',
                 'ects': 6.0,
                 'weighting_factor': 1.0,
                 'valid_from': '2021W',
@@ -163,18 +159,3 @@ class Crawler:
                     degree_id,
                     dict(mappings_en.get(degree_id, {}), **mappings_de.get(degree_id, {}))
                 )
-
-
-crawler = Crawler()
-degrees = set()
-c = 0
-for module_id, module_name_en, module_name_de in crawler.modules():
-    print(f"module_name_en={module_name_en}, module_name_de={module_name_de}")
-    for degree_id, mapping_info in crawler.module_degree_mappings(module_id):
-        name = mapping_info["full_name_en"]
-        if name[:12] not in degrees:
-            print(mapping_info)
-        degrees.add(name[:12])
-    c += 1
-print(len(degrees))
-print(c)

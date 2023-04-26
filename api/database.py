@@ -1,127 +1,66 @@
-import pymongo
+import psycopg2
 
 
-class Database:
-
-    def __init__(self, mongo_conn):
+class TUMReadDatabase:
+    def __init__(self, name, host, user, password, port):
         try:
-            self.client = pymongo.MongoClient(mongo_conn)
-            self.client.server_info()
-            self.connection_error = None
+            self.connection = psycopg2.connect(database=name,
+                                               host=host,
+                                               user=user,
+                                               password=password,
+                                               port=port)
+            self.cursor = self.connection.cursor()
         except Exception as e:
             self.connection_error = e
             return
-        self.database = self.client['tum']
 
-    def get_all_pStpStpNrs(self, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
-            {'$group': {
-                '_id': 'null',
-                'pStpStpNrs': {
-                    '$push': '$pStpStpNr'
-                }
-            }},
-            {'$project': {'_id': 0}}
-        ])
-        result_list = list(result)
-        if not result_list:
-            return None
-        return result_list[0]
+    def get_number_of_modules(self):
+        query = "SELECT COUNT(*) FROM modules;"
+        self.cursor.execute(query)
+        return self.cursor.fetchone()[0]
 
-    def get_degree(self, pStpStpNr, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].find_one(
-            {'pStpStpNr': pStpStpNr},
-            {'_id': 0, 'curriculum': 0, 'modules': 0}
-        )
-        return result
+    def get_module_info(self, module_id):
+        query = "SELECT * FROM modules WHERE module_id = %s;"
+        self.cursor.execute(query, (module_id,))
+        return self.cursor.fetchone()
 
-    def get_curriculum(self, pStpStpNr, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].find_one(
-            {'pStpStpNr': pStpStpNr},
-            {'_id': 0, 'curriculum': 1}
-        )
-        return result
+    def get_number_of_degrees(self):
+        query = "SELECT COUNT(*) FROM degrees;"
+        self.cursor.execute(query)
+        return self.cursor.fetchone()[0]
 
-    def get_modules(self, pStpStpNr, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].find_one(
-            {'pStpStpNr': pStpStpNr},
-            {'_id': 0, 'modules': 1}
-        )
-        return result
+    def get_all_degrees(self):
+        query = "SELECT * FROM degrees;"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
 
-    def get_module(self, pStpStpNr, module_id, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
-            {'$match': {
-                'pStpStpNr': pStpStpNr,
-                'modules.module_id': module_id
-            }},
-            {'$project': {'_id': 0,
-                          'module': {'$first': {'$filter': {
-                              'input': '$modules',
-                              'cond': {'$eq': ['$$this.module_id', module_id]}}}}}
-             }
-        ])
-        result_list = list(result)
-        if not result_list:
-            return None
-        return result_list[0]['module']
+    def get_degree_info(self, degree_id):
+        query = "SELECT * FROM degrees WHERE degree_id = %s;"
+        self.cursor.execute(query, (degree_id,))
+        return self.cursor.fetchone()
 
-    def get_pStpStpNrs_with_module(self, module_id, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
-            {'$match': {
-                'modules.module_id': module_id
-            }},
-            {'$group': {
-                '_id': 'null',
-                'pStpStpNrs': {
-                    '$push': '$pStpStpNr'
-                }
-            }},
-            {'$project': {'_id': 0}}
-        ])
-        result_list = list(result)
-        if not result_list:
-            return None
-        return result_list[0]
+    def get_modules_of_degree(self, degree_id, valid_from=None, valid_to=None, degree_version=None):
+        query = """
+            SELECT m.*
+            FROM modules m
+            INNER JOIN mappings mp ON m.module_id = mp.module_id
+            WHERE mp.degree_id = %s
+        """
+        params = [degree_id]
 
-    def get_pStpStpNrs_with_degree(self, degree_id, language='english'):
-        if language not in ['english', 'german']:
-            raise ValueError(f'invalid curriculum language: {language}')
-        result = self.database[f'curricula-{language}'].aggregate([
-            {'$match': {
-                'degree_id': degree_id
-            }},
-            {'$group': {
-                '_id': 'null',
-                'pStpStpNrs': {
-                    '$push': '$pStpStpNr'
-                }
-            }},
-            {'$project': {'_id': 0}}
-        ])
-        result_list = list(result)
-        if not result_list:
-            return None
-        return result_list[0]
+        if valid_from:
+            query += " AND mp.valid_from >= %s"
+            params.append(valid_from)
 
-    def status(self):
-        crawled_degrees_de = self.database['curricula-german'].count_documents({})
-        crawled_degrees_en = self.database['curricula-english'].count_documents({})
-        return {
-            'crawled_degrees': {
-                'german': crawled_degrees_de,
-                'english': crawled_degrees_en
-            }
-        }
+        if valid_to:
+            query += " AND mp.valid_to <= %s"
+            params.append(valid_to)
+
+        if degree_version:
+            query += " AND mp.degree_version = %s"
+            params.append(degree_version)
+
+        query += ";"
+
+        self.cursor.execute(query, tuple(params))
+        return self.cursor.fetchall()

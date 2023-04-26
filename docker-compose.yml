@@ -1,16 +1,18 @@
 services:
-  mongodb:
-    image: mongo:4
-    container_name: tum-ects-mongodb
-  parser:
+  database:
+    image: postgres:latest
+    container_name: tum-ects-database
+    environment:
+      - POSTGRES_PASSWORD=postgres
+  crawler:
     build:
       context: ./crawler
     container_name: tum-ects-crawler
     environment:
-      - MONGODB=mongodb://tum-ects-mongodb:27017
       - MAX_WORKERS=1
+      - DATABASE_PORT=5432
     depends_on:
-      - "mongodb"
+      - "database"
   api:
     build:
       context: ./api
@@ -19,6 +21,6 @@ services:
       # <exposed port>:5000
       - 5000:5000
     environment:
-      - MONGODB=mongodb://tum-ects-mongodb:27017
+      - DATABASE_PORT=5432
     depends_on:
       - "mongodb"

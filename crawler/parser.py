@@ -17,12 +17,12 @@ def parse_degrees(text: str) -> dict:
     degrees_json = json.loads(degrees_json, strict=False)
 
     def parse_degree(degree_json: dict) -> (str, dict):
-        full_name = degree_json["text"].trim()
+        full_name = degree_json["text"].strip()
         content = {
             "full_name": full_name,
-            "short_name": full_name[6:].split("(")[0].trim(),
+            "short_name": full_name[6:].split("(")[0].strip(),
             "nr": full_name[6:],
-            "version": full_name.split("[")[1].split("]")[0].trim(),
+            "version": full_name.split("[")[1].split("]")[0].strip(),
         }
         return degree_json["id"], content
 
@@ -97,8 +97,7 @@ def parse_mapping_on_page(text: str) -> dict:
         # get the pStpStpNr
         degree_id = td_list[2].find("a").get("href").split("pStpStpNr=")[1].split("&")[0]
         result[degree_id] = {
-            "full_name": names[1],
-            "curriculum_version": names[2],
+            "version": names[2],
             "ects": float(names[5].replace(",", ".")) if names[5] else None,
             "weighting_factor": float(names[8].replace(",", ".")) if names[8] else None,
             "valid_from": names[11],
