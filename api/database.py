@@ -65,3 +65,8 @@ class TUMReadDatabase:
 
         self.cursor.execute(query, tuple(params))
         return self.cursor.fetchall()
+
+    def get_number_of_mappings(self):
+        query = "SELECT COUNT(*) FROM mappings;"
+        self.cursor.execute(query)
+        return self.cursor.fetchone()[0]

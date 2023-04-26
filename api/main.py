@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
 from typing import Optional
@@ -19,6 +20,7 @@ def get_counts():
     return {
         "number_of_degrees": database.get_number_of_degrees(),
         "number_of_modules": database.get_number_of_modules(),
+        "number_of_mappings": database.get_number_of_mappings()
     }
 
 
