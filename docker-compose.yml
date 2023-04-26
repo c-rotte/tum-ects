@@ -11,6 +11,7 @@ services:
     environment:
       - MAX_WORKERS=1
       - DATABASE_PORT=5432
+      - WAIT_HOSTS=database:5432
     depends_on:
       - "database"
   api:
@@ -22,6 +23,7 @@ services:
       - 5000:5000
     environment:
       - DATABASE_PORT=5432
+      - WAIT_HOSTS=database:5432
     depends_on:
       - "database"
       - "crawler"

@@ -6,8 +6,8 @@ from database import TUMReadDatabase
 
 app = FastAPI()
 database = TUMReadDatabase(
-    name="tum-ects",
-    host="127.0.0.1",
+    name="postgres",
+    host="database",
     user="postgres",
     password="postgres",
     port=int(os.getenv("DATABASE_PORT", 5432))

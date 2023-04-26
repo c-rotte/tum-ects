@@ -6,4 +6,7 @@ COPY . .
 
 RUN pip3 install -r requirements.txt
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.11.0/wait /wait
+RUN chmod +x /wait
+
+CMD ["/bin/bash", "-c", "/wait; uvicorn main:app --host 0.0.0.0 --port 5000"]

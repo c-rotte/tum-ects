@@ -29,10 +29,10 @@ def run_crawler(database: TUMWriteDatabase, max_workers=1):
     degrees = crawler.degrees()
     for degree_id in degrees:
         database.insert_degree(degree_id,
-                               degrees[degree_id]["full_text_en"],
-                               degrees[degree_id]["short_text_en"],
-                               degrees[degree_id]["full_text_de"],
-                               degrees[degree_id]["short_text_de"])
+                               degrees[degree_id]["full_name_en"],
+                               degrees[degree_id]["short_name_en"],
+                               degrees[degree_id]["full_name_de"],
+                               degrees[degree_id]["short_name_de"])
 
     executor = ThreadPoolExecutor(max_workers=max_workers)
     # get all module mappings in parallel
@@ -48,15 +48,14 @@ def run_crawler(database: TUMWriteDatabase, max_workers=1):
 
 if __name__ == '__main__':
 
-    mongodb_connection = os.getenv('MONGODB', 'mongodb://localhost:27017')
-    print('Connecting to MongoDB... ')
-    database = TUMWriteDatabase(name="tum-ects",
-                                host="127.0.0.1",
+    print('Connecting to database... ')
+    database = TUMWriteDatabase(name="postgres",
+                                host="database",
                                 user="postgres",
                                 password="postgres",
                                 port=int(os.getenv("DATABASE_PORT", 5432)))
     if database.connection_error:
-        print(f'Could not connect to <{mongodb_connection}>.')
+        print(f'Could not connect to database.')
         print(database.connection_error)
         exit(-1)
 

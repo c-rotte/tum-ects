@@ -3,6 +3,7 @@ import psycopg2
 
 class TUMReadDatabase:
     def __init__(self, name, host, user, password, port):
+        self.connection_error = None
         try:
             self.connection = psycopg2.connect(database=name,
                                                host=host,
