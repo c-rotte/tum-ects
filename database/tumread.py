@@ -27,7 +27,7 @@ class TUMReadDatabase():
             condition &= Mapping.valid_from >= valid_from
 
         if valid_to:
-            condition &= Mapping.valid_to >= valid_to
+            condition &= Mapping.valid_to <= valid_to
 
         if degree_version:
             condition &= Mapping.degree_version == degree_version
