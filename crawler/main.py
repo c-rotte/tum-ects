@@ -1,7 +1,8 @@
 import os
 from crawler import Crawler
-from database import TUMWriteDatabase
 from concurrent.futures import ThreadPoolExecutor
+
+from database.tumwrite import TUMWriteDatabase
 
 
 class Worker:
@@ -49,15 +50,7 @@ def run_crawler(database: TUMWriteDatabase, max_workers=1):
 if __name__ == '__main__':
 
     print('Connecting to database... ')
-    database = TUMWriteDatabase(name="postgres",
-                                host="database",
-                                user="postgres",
-                                password="postgres",
-                                port=int(os.getenv("DATABASE_PORT", 5432)))
-    if database.connection_error:
-        print(f'Could not connect to database.')
-        print(database.connection_error)
-        exit(-1)
+    database = TUMWriteDatabase()
 
     max_workers = int(os.getenv("MAX_WORKERS", 1))
     run_crawler(database, max_workers)

@@ -5,3 +5,4 @@ bs4~=0.0.1
 beautifulsoup4~=4.10.0
 lxml~=4.9.1
 psycopg2~=2.9.6
+peewee~=3.16.2

@@ -1,19 +1,13 @@
 import os
-from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
 from typing import Optional
-from database import TUMReadDatabase
+
+from database.tumread import TUMReadDatabase
 
 app = FastAPI()
-database = TUMReadDatabase(
-    name="postgres",
-    host="database",
-    user="postgres",
-    password="postgres",
-    port=int(os.getenv("DATABASE_PORT", 5432))
-)
 
+database = TUMReadDatabase()
 
 @app.get("/")
 def get_counts():
