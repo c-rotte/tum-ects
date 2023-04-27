@@ -1,7 +1,10 @@
-from database.database import BaseDatabase, Degree, Module, Mapping
+from database.database import Degree, Module, Mapping, init_db
 
 
-class TUMWriteDatabase(BaseDatabase):
+class TUMWriteDatabase:
+    def __init__(self):
+        init_db()
+
     def insert_degree(self, degree_id, full_text_en, short_text_en, full_text_de, short_text_de):
         Degree.insert(
             degree_id=degree_id,

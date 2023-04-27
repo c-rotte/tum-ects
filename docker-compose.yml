@@ -3,10 +3,12 @@ services:
     image: postgres:latest
     container_name: tum-ects-database
     environment:
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
   crawler:
     build:
-      context: ./crawler
+      dockerfile: Dockerfile.crawler
     container_name: tum-ects-crawler
     environment:
       - MAX_WORKERS=1
@@ -16,7 +18,7 @@ services:
       - "database"
   api:
     build:
-      context: ./api
+      dockerfile: Dockerfile.api
     container_name: tum-ects-api
     ports:
       # <exposed port>:5000
