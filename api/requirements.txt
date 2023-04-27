@@ -1,3 +1,4 @@
-fastapi~=0.75.0
+fastapi==0.95.1
 psycopg2~=2.9.6
 uvicorn~=0.17.6
+peewee~=3.16.2
