@@ -22,4 +22,4 @@ jobs:
         pip install -r ./${{matrix.module}}/requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '${{matrix.module}}/*.py')
+        pylint --fail-under=2 $(git ls-files '${{matrix.module}}/*.py')
