@@ -5,20 +5,24 @@ class TUMWriteDatabase:
     def __init__(self):
         init_db()
 
-    def insert_degree(self, degree_id, full_text_en, short_text_en, full_text_de, short_text_de):
+    def insert_degree(self, degree_id, nr, full_name_en, full_name_de, subtitle_en, subtitle_de, version):
         Degree.insert(
             degree_id=degree_id,
-            full_text_en=full_text_en,
-            short_text_en=short_text_en,
-            full_text_de=full_text_de,
-            short_text_de=short_text_de,
+            nr=nr,
+            full_name_en=full_name_en,
+            full_name_de=full_name_de,
+            subtitle_en=subtitle_en,
+            subtitle_de=subtitle_de,
+            version=version
         ).on_conflict(
             conflict_target=Degree.degree_id,
             update={
-                Degree.full_text_en: full_text_en,
-                Degree.short_text_en: short_text_en,
-                Degree.full_text_de: full_text_de,
-                Degree.short_text_de: short_text_de,
+                Degree.nr: nr,
+                Degree.full_name_en: full_name_en,
+                Degree.full_name_de: full_name_de,
+                Degree.subtitle_en: subtitle_en,
+                Degree.subtitle_de: subtitle_de,
+                Degree.version: version
             },
         ).execute()
 
@@ -29,7 +33,7 @@ class TUMWriteDatabase:
         ).execute()
 
     def insert_mapping(
-        self, degree_id, module_id, degree_version, ects, weighting_factor, valid_from, valid_to
+            self, degree_id, module_id, degree_version, ects, weighting_factor, valid_from, valid_to
     ):
         Mapping.insert(
             degree_id=degree_id,

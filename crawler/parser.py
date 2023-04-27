@@ -4,33 +4,23 @@ import bs4
 import json
 
 
-def parse_degrees(text: str) -> dict:
+def parse_degree(text: str) -> dict:
     """parses the degrees from the html response"""
     soup = BeautifulSoup(text, "html.parser")
-    all_cdata = soup.find_all(text=lambda tag: isinstance(tag, bs4.CData))
-    cdata = max([x.string for x in all_cdata], key=len)
-    degrees_json = cdata.split("=")[1].strip().rstrip(";")
-    # remove '\' from json
-    degrees_json = degrees_json.replace("\\", "")
-    # remove all control characters
-    degrees_json = "".join(c for c in degrees_json if unicodedata.category(c)[0] != "C")
-    degrees_json = json.loads(degrees_json, strict=False)
-
-    def parse_degree(degree_json: dict) -> (str, dict):
-        full_name = degree_json["text"].strip()
-        content = {
-            "full_name": full_name,
-            "short_name": full_name[6:].split("(")[0].strip(),
-            "nr": full_name[6:],
-            "version": full_name.split("[")[1].split("]")[0].strip(),
-        }
-        return degree_json["id"], content
-
-    result = {}
-    for degree_json in degrees_json["data"]:
-        degree_id, degree_data = parse_degree(degree_json)
-        result[degree_id] = degree_data
-    return result
+    if 'Curriculum Support' in soup.head.title.string:
+        return None
+    title = soup.find('span', {'title': 'Curriculum version '})
+    if not title:
+        title = soup.find('span', {'title': 'SPO-Version '})
+    title = title.text
+    subtitle = soup.find('td', {'class': 'pageOwner'}).span.text
+    version = title.split('[')[1].split(']')[0] if '[' in title and ']' in title else None
+    return {
+        "nr": subtitle[0:6],
+        "full_name": title,
+        "subtitle": subtitle,
+        "version": version
+    }
 
 
 def module_page_number(text: str) -> int:

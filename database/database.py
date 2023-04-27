@@ -1,15 +1,15 @@
 import os
 
 from peewee import (
-    CharField,
     Model,
     DatabaseProxy,
     IntegerField,
     FloatField,
+    TextField,
+    ForeignKeyField,
     CompositeKey,
-    SQL,
     SqliteDatabase,
-    PostgresqlDatabase, TextField,
+    PostgresqlDatabase,
 )
 
 db = DatabaseProxy()
@@ -41,10 +41,12 @@ class BaseModel(Model):
 
 class Degree(BaseModel):
     degree_id = IntegerField(primary_key=True)
-    full_text_en = TextField(null=True)
-    short_text_en = TextField(null=True)
-    full_text_de = TextField(null=True)
-    short_text_de = TextField(null=True)
+    nr = TextField()
+    full_name_en = TextField()
+    full_name_de = TextField()
+    subtitle_en = TextField()
+    subtitle_de = TextField()
+    version = TextField()
 
 
 class Module(BaseModel):
@@ -54,17 +56,13 @@ class Module(BaseModel):
 
 
 class Mapping(BaseModel):
-    degree_id = IntegerField()
-    module_id = IntegerField()
+    degree_id = ForeignKeyField(Degree, backref='mappings', on_delete='CASCADE')
+    module_id = ForeignKeyField(Module, backref='mappings', on_delete='CASCADE')
     degree_version = TextField()
-    ects = FloatField()
-    weighting_factor = FloatField()
+    ects = FloatField(null=True)
+    weighting_factor = FloatField(null=True)
     valid_from = TextField(null=True)
     valid_to = TextField(null=True)
 
     class Meta:
-        primary_key = CompositeKey("degree_id", "module_id", "degree_version")
-        constraints = [
-            SQL("FOREIGN KEY(degree_id) REFERENCES degree(degree_id) ON DELETE CASCADE"),
-            SQL("FOREIGN KEY(module_id) REFERENCES module(module_id) ON DELETE CASCADE"),
-        ]
+        primary_key = CompositeKey("degree_id", "module_id")

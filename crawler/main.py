@@ -13,10 +13,11 @@ class Worker:
         self.module_id = module_id
 
     def run(self):
+        print(f"Starting worker for module {self.module_id}")
         # insert english modules names
         for degree_id, mapping_info in self.crawler.module_degree_mappings(self.module_id):
-            self.database.insert_mapping(self.module_id,
-                                         degree_id,
+            self.database.insert_mapping(degree_id,
+                                         self.module_id,
                                          mapping_info["version"],
                                          mapping_info["ects"],
                                          mapping_info["weighting_factor"],
@@ -26,18 +27,19 @@ class Worker:
 
 def run_crawler(database: TUMWriteDatabase, max_workers=1):
     crawler = Crawler()
-    # we don't have to parallelize this because it's only one request
-    degrees = crawler.degrees()
-    for degree_id in degrees:
+    for degree_id, degree_info in crawler.degrees():
         database.insert_degree(degree_id,
-                               degrees[degree_id]["full_name_en"],
-                               degrees[degree_id]["short_name_en"],
-                               degrees[degree_id]["full_name_de"],
-                               degrees[degree_id]["short_name_de"])
+                               degree_info["nr"],
+                               degree_info["full_name_en"],
+                               degree_info["full_name_de"],
+                               degree_info["subtitle_en"],
+                               degree_info["subtitle_de"],
+                               degree_info["version"])
 
     executor = ThreadPoolExecutor(max_workers=max_workers)
     # get all module mappings in parallel
     for module_id, module_name_en, module_name_de in crawler.modules():
+        print(f"Found module {module_id} ({module_name_en})")
         database.insert_module(module_id,
                                module_name_en,
                                module_name_de)
@@ -48,7 +50,6 @@ def run_crawler(database: TUMWriteDatabase, max_workers=1):
 
 
 if __name__ == '__main__':
-
     print('Connecting to database... ')
     database = TUMWriteDatabase()
 

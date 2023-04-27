@@ -34,42 +34,38 @@ class Crawler:
         Output: A dictionary of degrees, e.g.:
         {
             '12345': {
-                'full_text_en': 'Master of Science in Computer Science [2018]',
-                'short_text_en': 'Computer Science',
-                'full_text_de': 'Master of Science in Informatik [2018]',
-                'short_text_de': 'Master of Science in Informatik',
-            },
-            '67890': {
-                'full_text_en': 'Master of Science in Data Science [2018]',
-                'short_text_en': 'Data Science',
-                'full_text_de': 'Master of Science in Datenwissenschaft [2018]',
-                'short_text_de': 'Master of Science in Datenwissenschaft',
+                'nr': '17 013',
+                'full_name_en': '17 013 Master of Science in Informatik [20181]',
+                'full_name_de': '...',
+                'subtitle_en': '...',
+                'subtitle_de': '...',
+                'version': '2018'
             },
             ...
         }
         """
-        res = requests.get(
-            "https://campus.tum.de/tumonline/pl/ui/$ctx/wbModHB.cbShow?"
-            "pOrgNr=1&pId=tabIdSPOModules_tabid&pTabContainerId=",
-            headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=True)}'})
-        english_degrees = parser.parse_degrees(res.text)
-        for degree_id in english_degrees:
-            english_degrees[degree_id]["full_name_en"] = english_degrees[degree_id].pop("full_name")
-            english_degrees[degree_id]["short_name_en"] = english_degrees[degree_id].pop("short_name")
-        res = requests.get(
-            "https://campus.tum.de/tumonline/pl/ui/$ctx/wbModHB.cbShow?"
-            "pOrgNr=1&pId=tabIdSPOModules_tabid&pTabContainerId=",
-            headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=False)}'})
-        german_degrees = parser.parse_degrees(res.text)
-        for degree_id in german_degrees:
-            german_degrees[degree_id]["full_name_de"] = german_degrees[degree_id].pop("full_name")
-            german_degrees[degree_id]["short_name_de"] = german_degrees[degree_id].pop("short_name")
-        all_degree_ids = english_degrees.keys() | german_degrees.keys()
-        return {
-            # unionize english and german
-            degree_id: dict(english_degrees.get(degree_id, {}), **german_degrees.get(degree_id, {}))
-            for degree_id in all_degree_ids
-        }
+        # we need to manually iterate over all possible numbers since the module catalog doesn't contain all degrees
+        for degree_id in range(0, 10000):
+            res = requests.get(
+                "https://campus.tum.de/tumonline/pl/ui/$ctx/wbstpcs.showSpoTree?"
+                f"pStpStpNr={degree_id}",
+                headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=True)}'})
+            english_degree = parser.parse_degree(res.text)
+            res = requests.get(
+                "https://campus.tum.de/tumonline/pl/ui/$ctx/wbstpcs.showSpoTree?"
+                f"pStpStpNr={degree_id}",
+                headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=False)}'})
+            german_degree = parser.parse_degree(res.text)
+            if not english_degree or not german_degree:
+                continue
+            yield degree_id, {
+                "nr": english_degree["nr"],
+                "full_name_en": english_degree["full_name"],
+                "subtitle_en": english_degree["subtitle"],
+                "full_name_de": german_degree["full_name"],
+                "subtitle_de": german_degree["subtitle"],
+                "version": english_degree["version"]
+            }
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def modules(self) -> Iterator[str, str]:
@@ -144,18 +140,9 @@ class Crawler:
             res = requests.get(craft_url(page + 1, english=True), headers={
                 'cookie': f'PSESSIONID={self._get_p_session_id(english=True)}'
             })
-            mappings_en = parser.parse_mapping_on_page(res.text)
-            for degree_id in mappings_en:
-                mappings_en[degree_id]["full_name_en"] = mappings_en[degree_id].pop("full_name")
-            res = requests.get(craft_url(page + 1, english=False), headers={
-                'cookie': f'PSESSIONID={self._get_p_session_id(english=False)}'
-            })
-            mappings_de = parser.parse_mapping_on_page(res.text)
-            for degree_id in mappings_de:
-                mappings_de[degree_id]["full_name_de"] = mappings_de[degree_id].pop("full_name")
-            all_degree_ids = mappings_en.keys() | mappings_de.keys()
-            for degree_id in all_degree_ids:
+            mappings = parser.parse_mapping_on_page(res.text)
+            for degree_id in mappings:
                 yield (
                     degree_id,
-                    dict(mappings_en.get(degree_id, {}), **mappings_de.get(degree_id, {}))
+                    mappings[degree_id]
                 )
