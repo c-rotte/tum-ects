@@ -14,18 +14,14 @@ class Worker:
     def run(self):
         print(f"Starting worker for module {self.module_id}")
         # insert english modules names
-        db_keys = ["version", "ects", "weighting_factor", "valid_from", "valid_to"]
         for degree_id, mapping_info in self.crawler.module_degree_mappings(self.module_id):
-            filtered_mapping_info = {key: mapping_info.get(key) for key in db_keys}
-            Mapping.insert(degree_id=degree_id, module_id=self.module_id, **filtered_mapping_info).on_conflict_replace().execute()
+            Mapping.insert(degree_id=degree_id, module_id=self.module_id, **mapping_info).on_conflict_replace().execute()
 
 
 def run_crawler(max_workers=1):
     crawler = Crawler()
-    db_keys = ["nr", "full_name_en", "full_name_de", "subtitle_en", "subtitle_de", "version"]
     for degree_id, degree_info in crawler.degrees():
-        filtered_degree_info = {key: degree_info.get(key) for key in db_keys}
-        Degree.insert(degree_id, **filtered_degree_info).on_conflict_replace().execute()
+        Degree.insert(degree_id, **degree_info).on_conflict_replace().execute()
 
     executor = ThreadPoolExecutor(max_workers=max_workers)
     # get all module mappings in parallel
