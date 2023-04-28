@@ -1,19 +1,20 @@
 services:
   database:
-    image: postgres:latest
+    image: mysql:latest
     container_name: tum-ects-database
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=database
   crawler:
     build:
       dockerfile: Dockerfile.crawler
     container_name: tum-ects-crawler
     environment:
       - MAX_WORKERS=1
-      - DATABASE_PORT=5432
-      - WAIT_HOSTS=database:5432
+      - DATABASE_PORT=3306
+      - WAIT_HOSTS=database:3306
     depends_on:
       - "database"
   api:
@@ -24,8 +25,8 @@ services:
       # <exposed port>:5000
       - 5000:5000
     environment:
-      - DATABASE_PORT=5432
-      - WAIT_HOSTS=database:5432
+      - DATABASE_PORT=3306
+      - WAIT_HOSTS=database:3306
     depends_on:
       - "database"
       - "crawler"

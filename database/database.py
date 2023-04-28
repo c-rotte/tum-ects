@@ -9,7 +9,7 @@ from peewee import (
     ForeignKeyField,
     CompositeKey,
     SqliteDatabase,
-    PostgresqlDatabase,
+    MySQLDatabase,
 )
 
 db = DatabaseProxy()
@@ -19,14 +19,16 @@ def init_db():
     if not isinstance(db, DatabaseProxy):
         return
     if os.getenv("DB_TYPE") == "sqlite":
-        db_conn = SqliteDatabase(os.getenv("SQLITE_PATH", "tumgrades.sqlite"), pragmas={"foreign_keys": 1})
+        db_conn = SqliteDatabase(
+            os.getenv("SQLITE_PATH", "tumgrades.sqlite"), pragmas={"foreign_keys": 1}
+        )
     else:
-        db_conn = PostgresqlDatabase(
-            database=os.getenv("DATABASE", "postgres"),
+        db_conn = MySQLDatabase(
+            os.getenv("DATABASE", "database"),
             host=os.getenv("DATABASE_HOST", "database"),
-            user=os.getenv("DATABASE_USER", "postgres"),
-            password=os.getenv("DATABASE_PASSWORD", "postgres"),
-            port=int(os.getenv("DATABASE_PORT", 5432)),
+            user=os.getenv("DATABASE_USER", "mysql"),
+            password=os.getenv("DATABASE_PASSWORD", "mysql"),
+            port=int(os.getenv("DATABASE_PORT", 3306)),
         )
     db.initialize(db_conn)
     db.create_tables([Degree, Module])
@@ -56,8 +58,8 @@ class Module(BaseModel):
 
 
 class Mapping(BaseModel):
-    degree_id = ForeignKeyField(Degree, backref='mappings', on_delete='CASCADE')
-    module_id = ForeignKeyField(Module, backref='mappings', on_delete='CASCADE')
+    degree_id = ForeignKeyField(Degree, backref="mappings", on_delete="CASCADE")
+    module_id = ForeignKeyField(Module, backref="mappings", on_delete="CASCADE")
     degree_version = TextField()
     ects = FloatField(null=True)
     weighting_factor = FloatField(null=True)
