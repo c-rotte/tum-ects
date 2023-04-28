@@ -2,48 +2,37 @@ import os
 from crawler import Crawler
 from concurrent.futures import ThreadPoolExecutor
 
-from database.tumwrite import TUMWriteDatabase
+from database.database import Module, Degree, Mapping, init_db
 
 
 class Worker:
 
-    def __init__(self, crawler: Crawler, database: TUMWriteDatabase, module_id: str):
+    def __init__(self, crawler: Crawler, module_id: str):
         self.crawler = crawler
-        self.database = database
         self.module_id = module_id
 
     def run(self):
         print(f"Starting worker for module {self.module_id}")
         # insert english modules names
+        db_keys = ["version", "ects", "weighting_factor", "valid_from", "valid_to"]
         for degree_id, mapping_info in self.crawler.module_degree_mappings(self.module_id):
-            self.database.insert_mapping(degree_id,
-                                         self.module_id,
-                                         mapping_info["version"],
-                                         mapping_info["ects"],
-                                         mapping_info["weighting_factor"],
-                                         mapping_info["valid_from"],
-                                         mapping_info["valid_to"])
+            filtered_mapping_info = {key: mapping_info.get(key) for key in db_keys}
+            Mapping.insert(degree_id=degree_id, module_id=self.module_id, **filtered_mapping_info).on_conflict_replace().execute()
 
 
-def run_crawler(database: TUMWriteDatabase, max_workers=1):
+def run_crawler(max_workers=1):
     crawler = Crawler()
+    db_keys = ["nr", "full_name_en", "full_name_de", "subtitle_en", "subtitle_de", "version"]
     for degree_id, degree_info in crawler.degrees():
-        database.insert_degree(degree_id,
-                               degree_info["nr"],
-                               degree_info["full_name_en"],
-                               degree_info["full_name_de"],
-                               degree_info["subtitle_en"],
-                               degree_info["subtitle_de"],
-                               degree_info["version"])
+        filtered_degree_info = {key: degree_info.get(key) for key in db_keys}
+        Degree.insert(degree_id, **filtered_degree_info).on_conflict_replace().execute()
 
     executor = ThreadPoolExecutor(max_workers=max_workers)
     # get all module mappings in parallel
     for module_id, module_name_en, module_name_de in crawler.modules():
         print(f"Found module {module_id} ({module_name_en})")
-        database.insert_module(module_id,
-                               module_name_en,
-                               module_name_de)
-        worker = Worker(crawler, database, module_id)
+        Module.insert(module_id=module_id, module_name_en=module_name_en, module_name_de=module_name_de).on_conflict_replace().execute()
+        worker = Worker(crawler, module_id)
         executor.submit(worker.run)
 
     executor.shutdown(wait=True)
@@ -51,7 +40,6 @@ def run_crawler(database: TUMWriteDatabase, max_workers=1):
 
 if __name__ == '__main__':
     print('Connecting to database... ')
-    database = TUMWriteDatabase()
-
+    init_db()
     max_workers = int(os.getenv("MAX_WORKERS", 1))
-    run_crawler(database, max_workers)
+    run_crawler(max_workers)
