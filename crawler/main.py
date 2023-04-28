@@ -21,7 +21,7 @@ class Worker:
 def run_crawler(max_workers=1):
     crawler = Crawler()
     for degree_id, degree_info in crawler.degrees():
-        Degree.insert(degree_id, **degree_info).on_conflict_replace().execute()
+        Degree.insert(degree_id=degree_id, **degree_info).on_conflict_replace().execute()
 
     executor = ThreadPoolExecutor(max_workers=max_workers)
     # get all module mappings in parallel
