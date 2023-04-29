@@ -6,7 +6,7 @@ import json
 
 def parse_degree(text: str) -> dict:
     """parses the degrees from the html response"""
-    soup = BeautifulSoup(text, "html.parser")
+    soup = BeautifulSoup(text, "lxml")
     if 'Curriculum Support' in soup.head.title.string:
         return None
     title = soup.find('span', {'title': 'Curriculum version '})
@@ -39,17 +39,18 @@ def parse_modules_on_page(text: str) -> dict:
     soup = BeautifulSoup(text, "lxml")
     table = soup.find("table", {"id": "idModHBTableORG"})
     result = {}
-    for td in table.find("tbody").find_all("td"):
+    for tr in table.find("tbody").find_all("tr"):
+        td_list = tr.find_all("td", {"class": "bold L"})
         # get the module id and name
-        a_list = td.find_all("a")
-        if len(a_list) < 2:
-            continue
+        a_list = td_list[0].find_all("a")
         href = a_list[1].get("href")
         if "pKnotenNr" not in href:
             continue
         name = a_list[1].next.string.strip()
+        # get the module number
+        nr = td_list[1].text
         module_id = href.split("pKnotenNr=")[1].split("&")[0]
-        result[module_id] = name
+        result[module_id] = (name, nr)
     return result
 
 

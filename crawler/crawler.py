@@ -72,8 +72,11 @@ class Crawler:
         """
         Output: A list of tuples containing module ID, English name, and German name, e.g.:
         [
-            ('98765', 'Introduction to Data Science', 'Einführung in die Datenwissenschaft'),
-            ('54321', 'Advanced Machine Learning', 'Fortgeschrittenes Maschinelles Lernen'),
+            ('98765', {
+                'name_en': 'Introduction to Data Science',
+                'name_de': 'Einführung in die Datenwissenschaft',
+                'nr': 'IN0001'
+            }),
             ...
         ]
         """
@@ -95,11 +98,13 @@ class Crawler:
             modules_de = parser.parse_modules_on_page(res.text)
             all_module_ids = modules_en.keys() | modules_de.keys()
             for module_id in all_module_ids:
-                yield (
-                    module_id,
-                    modules_en.get(module_id, None),
-                    modules_de.get(module_id, None)
-                )
+                name_en, nr_en = modules_en.get(module_id, (None, None))
+                name_de, nr_de = modules_de.get(module_id, (None, None))
+                yield (module_id, {
+                    "name_en": name_en,
+                    "name_de": name_de,
+                    "nr": nr_en if nr_en else nr_de
+                })
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def module_degree_mappings(self, module_id: str) -> Iterator[str, dict]:

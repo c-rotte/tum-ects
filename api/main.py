@@ -8,6 +8,7 @@ from database.database import init_db, Module, Degree, Mapping
 
 app = FastAPI()
 
+print("Connecting to database... ")
 init_db()
 
 @app.get("/")
@@ -28,7 +29,7 @@ def get_degree(degree_id: int):
 
 @app.get("/degrees")
 def get_degrees():
-    return list(Degree.select().count())
+    return list(Degree.select())
 
 
 @app.get("/module")

@@ -53,8 +53,9 @@ class Degree(BaseModel):
 
 class Module(BaseModel):
     module_id = IntegerField(primary_key=True)
-    name_en = TextField(null=True)
-    name_de = TextField(null=True)
+    module_name_en = TextField(null=True)
+    module_name_de = TextField(null=True)
+    module_nr = TextField()
 
 
 class Mapping(BaseModel):

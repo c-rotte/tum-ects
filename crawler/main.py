@@ -1,4 +1,5 @@
 import os
+import time
 from crawler import Crawler
 from concurrent.futures import ThreadPoolExecutor
 
@@ -11,14 +12,20 @@ class Worker:
         self.module_id = module_id
 
     def run(self):
-        print(f"Starting worker for module {self.module_id}")
-        # insert english modules names
-        for degree_id, mapping_info in self.crawler.module_degree_mappings(
-            self.module_id
-        ):
-            Mapping.insert(
-                degree_id=degree_id, module_id=self.module_id, **mapping_info
-            ).on_conflict_replace().execute()
+        # insert mapping
+        try:
+            for degree_id, mapping_info in self.crawler.module_degree_mappings(self.module_id):
+                Mapping.insert(
+                    degree_id=degree_id,
+                    module_id=self.module_id,
+                    degree_version=mapping_info["version"],
+                    ects=mapping_info["ects"],
+                    valid_from=mapping_info["valid_from"],
+                    valid_to=mapping_info["valid_to"],
+                    weighting_factor=mapping_info["weighting_factor"]
+                ).on_conflict_replace().execute()
+        except Exception as e:
+            print(f"Error inserting mapping: {e}")
 
 
 def run_crawler(max_workers=1):
@@ -29,14 +36,14 @@ def run_crawler(max_workers=1):
         ).on_conflict_replace().execute()
 
     executor = ThreadPoolExecutor(max_workers=max_workers)
-    # get all module mappings in parallel
-    for module_id, module_name_en, module_name_de in crawler.modules():
-        print(f"Found module {module_id} ({module_name_en})")
+    for module_id, module_info in crawler.modules():
         Module.insert(
             module_id=module_id,
-            module_name_en=module_name_en,
-            module_name_de=module_name_de,
+            module_name_en=module_info["name_en"],
+            module_name_de=module_info["name_de"],
+            module_nr=module_info["nr"]
         ).on_conflict_replace().execute()
+        # get all module mappings in parallel
         worker = Worker(crawler, module_id)
         executor.submit(worker.run)
 
@@ -47,4 +54,7 @@ if __name__ == "__main__":
     print("Connecting to database... ")
     init_db()
     max_workers = int(os.getenv("MAX_WORKERS", 1))
+    print(f"Running crawler with {max_workers} workers")
+    start_time = time.time()
     run_crawler(max_workers)
+    print(f"Finished crawling in {time.time() - start_time} seconds")
