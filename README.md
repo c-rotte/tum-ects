@@ -2,6 +2,10 @@
 
 A simple FastAPI application to manage TUM degrees, modules, and mappings.
 
+## Database Scheme
+
+![image](https://user-images.githubusercontent.com/54217818/235301806-33b5ef98-fec2-4dbc-a10e-aeee65dc167d.png)
+
 ## Instructions on how to run
 
 ### 1) Clone the repository
