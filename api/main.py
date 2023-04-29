@@ -1,5 +1,3 @@
-import logging
-
 from peewee import DoesNotExist
 from fastapi import FastAPI, HTTPException
 from typing import Optional

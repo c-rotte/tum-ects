@@ -1,7 +1,9 @@
-import unicodedata
 from bs4 import BeautifulSoup
-import bs4
-import json
+import warnings
+from bs4 import GuessedAtParserWarning
+
+# ignore XMLParsedAsHTMLWarning
+warnings.filterwarnings('ignore', category=GuessedAtParserWarning)
 
 
 def parse_degree(text: str) -> dict:
