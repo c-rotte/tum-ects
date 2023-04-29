@@ -15,6 +15,12 @@ class Worker:
         # insert mapping
         try:
             for degree_id, mapping_info in self.crawler.module_degree_mappings(self.module_id):
+                degree_exists = Degree.select().where(Degree.degree_id == degree_id).exists()
+                module_exists = Module.select().where(Module.module_id == self.module_id).exists()
+                if not degree_exists or not module_exists:
+                    # skip mapping if degree or module does not exist
+                    # (the module should exist, but we check it anyway)
+                    continue
                 Mapping.insert(
                     degree_id=degree_id,
                     module_id=self.module_id,
