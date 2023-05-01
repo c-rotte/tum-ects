@@ -9,8 +9,12 @@ from peewee import (
     ForeignKeyField,
     CompositeKey,
     SqliteDatabase,
-    MySQLDatabase,
+    MySQLDatabase
 )
+from playhouse.shortcuts import ReconnectMixin
+
+class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
+    pass
 
 db = DatabaseProxy()
 
@@ -23,12 +27,12 @@ def init_db():
             os.getenv("SQLITE_PATH", "tumgrades.sqlite"), pragmas={"foreign_keys": 1}
         )
     else:
-        db_conn = MySQLDatabase(
+        db_conn = ReconnectMySQLDatabase(
             os.getenv("DATABASE", "database"),
             host=os.getenv("DATABASE_HOST", "database"),
             user=os.getenv("DATABASE_USER", "mysql"),
             password=os.getenv("DATABASE_PASSWORD", "mysql"),
-            port=int(os.getenv("DATABASE_PORT", 3306)),
+            port=int(os.getenv("DATABASE_PORT", 3306))
         )
     db.initialize(db_conn)
     db.create_tables([Degree, Module])
