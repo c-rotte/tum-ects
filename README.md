@@ -1,6 +1,8 @@
 # TUM ECTS
 
-A simple FastAPI application to manage TUM degrees, modules, and mappings.
+A FastAPI application to manage TUM degrees, modules, and mappings. This application collects data from TUM Campus Online, crawls degree and module information, and provides a convenient API to access the data.
+
+Note that the crawler may take approximately 7 to 8 hours to collect all degrees and their associated information.
 
 ## Database Scheme
 
@@ -26,15 +28,23 @@ The API will be available at `localhost:5000`. The crawler needs a few hours to 
 ```bash
 GET http://localhost:5000/
 ```
-2. Get the info of a specific degree:
+2. Get all degrees:
+```bash
+GET http://localhost:5000/degrees
+```
+3. Get the info of a specific degree:
 ```bash
 GET http://localhost:5000/degree?degree_id=<degree_id>
 ```
-3. Get the info of a specific module:
+4. Get the info of a specific module:
 ```bash
 GET http://localhost:5000/module?module_id=<module_id>
 ```
-4. Get the modules of a degree:
+5. Find a module by its number:
+```bash
+GET http://localhost:5000/find_module?nr=<module_number>
+```
+6. Get the modules of a degree:
 ```bash
 GET http://localhost:5000/modules_of_degree?degree_id=<degree_id>[&valid_from=<valid_from>&valid_to=<valid_to>&degree_version=<degree_version>]
 ```
