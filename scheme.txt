@@ -1,0 +1,42 @@
+@startuml
+!theme sketchy
+
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) #x#
+
+Table(Degree, "Degree") {
+  primary_key(degree_id)
+  nr
+  full_name_en
+  full_name_de
+  subtitle_en
+  subtitle_de
+  version
+}
+
+Table(Module, "Module") {
+  primary_key(module_id)
+  module_name_en
+  module_name_de
+  nr
+}
+
+Table(Mapping, "Mapping") {
+  foreign_key(degree_id)
+  foreign_key(module_id)
+  degree_version
+  ects
+  weighting_factor
+  valid_from
+  valid_to
+}
+
+Degree "1" -- "0..*" Mapping : mappings
+Mapping "0..*" -- "1" Module : mappings
+
+Degree -[hidden]- Module
+Mapping -[hidden]down-> Degree
+Mapping -[hidden]down-> Module
+
+@enduml

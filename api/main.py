@@ -1,118 +1,54 @@
-import os
-
-import pymongo.errors
-
-from database import Database
+from peewee import DoesNotExist
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
 from typing import Optional
+import db_utils
 
-mongodb_connection = os.getenv('MONGODB', 'mongodb://localhost:27017')
-
-print('Connecting to MongoDB...')
-database = Database(mongodb_connection)
-if database.connection_error:
-    print(f'Could not connect to <{mongodb_connection}>.')
-    print(database.connection_error)
-    exit(-1)
+from database.database import init_db, Module, Degree, Mapping
 
 app = FastAPI()
 
+print("Connecting to database... ")
+init_db()
 
-@app.exception_handler(pymongo.errors.PyMongoError)
-async def database_exception_handler(_, exc):
-    """default exception handler for database errors"""
-    print(exc)
-    return JSONResponse(
-        status_code=500,
-        content={'error': 'internal database error'}
-    )
-
-
-@app.exception_handler(ValueError)
-async def value_error_handler(_, exc):
-    """default exception handler for value errors"""
-    print(exc)
-    return JSONResponse(
-        status_code=500,
-        content={'error': str(exc)}
-    )
+@app.get("/")
+def get_counts():
+    return {
+        "number_of_degrees": Degree.select().count(),
+        "number_of_modules": Module.select().count(),
+        "number_of_mappings": Mapping.select().count()
+    }
 
 
-# request endpoints
+@app.get("/degree")
+def get_degree(degree_id: int):
+    try:
+        return Degree.get_by_id(degree_id).dicts()
+    except DoesNotExist:
+        raise HTTPException(status_code=404, detail="Degree not found")
 
-@app.get('/')
-async def read_status():
-    return database.status()
-
-
-@app.get('/pStpStpNrs')
-async def read_pStpStpNrs(language: Optional[str] = 'english'):
-    result = database.get_all_pStpStpNrs(language)
-    if not result:
-        raise HTTPException(status_code=404, detail='no pStpStpNrs found')
-    return result
+@app.get("/degrees")
+def get_degrees():
+    return Degree.select().dicts()
 
 
-@app.get('/degree')
-async def read_degree(pStpStpNr: Optional[int] = None, language: Optional[str] = 'english'):
-    if not pStpStpNr:
-        raise HTTPException(status_code=400, detail='no pStpStpNr provided')
-    result = database.get_degree(pStpStpNr, language)
-    if not result:
-        raise HTTPException(status_code=404, detail='curriculum not found')
-    return result
+@app.get("/module")
+def get_module(module_id: int):
+    try:
+        return Module.get_by_id(module_id).dicts()
+    except DoesNotExist:
+        raise HTTPException(status_code=404, detail="Module not found")
 
+@app.get("/find_module")
+def find_module(nr: str):
+    try:
+        return Module.get(Module.nr == nr).dicts()
+    except DoesNotExist:
+        raise HTTPException(status_code=404, detail="Module not found")
 
-@app.get('/curriculum')
-async def read_curriculum(pStpStpNr: Optional[int] = None, language: Optional[str] = 'english'):
-    if not pStpStpNr:
-        raise HTTPException(status_code=400, detail='no pStpStpNr provided')
-    result = database.get_curriculum(pStpStpNr, language)
-    if not result:
-        raise HTTPException(status_code=404, detail='curriculum not found')
-    return result
-
-
-@app.get('/modules')
-async def read_modules(pStpStpNr: Optional[int] = None, language: Optional[str] = 'english'):
-    if not pStpStpNr:
-        raise HTTPException(status_code=400, detail='no pStpStpNr provided')
-    result = database.get_modules(pStpStpNr, language)
-    if not result:
-        raise HTTPException(status_code=404, detail='curriculum not found')
-    return result
-
-
-@app.get('/module')
-async def read_module(pStpStpNr: Optional[int] = None,
-                      module_id: Optional[str] = None,
-                      language: Optional[str] = 'english'):
-    if not pStpStpNr:
-        raise HTTPException(status_code=400, detail='no pStpStpNr provided')
-    if not module_id:
-        raise HTTPException(status_code=400, detail='no module_id provided')
-    result = database.get_module(pStpStpNr, module_id, language)
-    if not result:
-        raise HTTPException(status_code=404, detail='module not found')
-    return result
-
-
-@app.get('/parents')
-async def read_parents(module_id: Optional[str] = None, language: Optional[str] = 'english'):
-    if not module_id:
-        raise HTTPException(status_code=400, detail='no module_id provided')
-    result = database.get_pStpStpNrs_with_module(module_id, language)
-    if not result:
-        raise HTTPException(status_code=404, detail='module not found')
-    return result
-
-
-@app.get('/degrees')
-async def read_degrees(degree_id: Optional[str] = None, language: Optional[str] = 'english'):
-    if not degree_id:
-        raise HTTPException(status_code=400, detail='no degree_id provided')
-    result = database.get_pStpStpNrs_with_degree(degree_id=degree_id.replace('_', ' '), language=language)
-    if not result:
-        raise HTTPException(status_code=404, detail='degree not found')
-    return result
+@app.get("/modules_of_degree")
+def get_modules_of_degree(degree_id: int, valid_from: Optional[str] = None, valid_to: Optional[str] = None,
+                          degree_version: Optional[str] = None):
+    modules = db_utils.get_modules_of_degree(degree_id, valid_from, valid_to, degree_version)
+    if not modules:
+        raise HTTPException(status_code=404, detail="No modules found for the given degree")
+    return list(modules)

@@ -1,132 +1,50 @@
-**1) Clone the repository** 
+# TUM ECTS
 
-    git clone https://github.com/rchr1/tum-ects.git
-    cd tum-ects
-    
-**2) Create and run the containers**
+A FastAPI application to manage TUM degrees, modules, and mappings. This application collects data from TUM Campus Online, crawls degree and module information, and provides a convenient API to access the data.
 
-    docker-compose up -d
+Note that the crawler may take approximately 7 to 8 hours to collect all degrees and their associated information.
 
-The api will be available at `localhost:5000`. The parser needs a few hours to collect all degrees.
+## Database Scheme
 
-***
+![image](https://user-images.githubusercontent.com/54217818/235301806-33b5ef98-fec2-4dbc-a10e-aeee65dc167d.png)
 
-**Notes:**
+## Instructions on how to run
 
-Every degree potentially has multiple versions and thus curricula / module details. The Bachelor's Informatics Program, for example, has multiple versions which all have the `degree_id` 17_030. These versions can be uniquely identified using their `pStpStpNr`. Thus, the `pStpStpNr` is used as the primary identifier for all api calls. 
+### 1) Clone the repository
+```bash
+git clone https://github.com/rchr1/tum-ects.git
+cd tum-ects
+```
 
-The `language` can either be `german` or `english`. The default is `english`.
+### 2) Create and run the containers
+```bash
+docker-compose up -d
+```
 
-***
+The API will be available at `localhost:5000`. The crawler needs a few hours to collect all degrees.
 
-**Exemplary calls:**
-
-(**Warning**: Do not use `107.173.251.156` in your application, it is just a low-end server)
-
-Status:
-
-    http://107.173.251.156:5000
-    
-    {
-        "crawled_degrees": {
-            "german": 1,
-            "english": 1
-        }
-    }
-
-All degree versions:
-
-    http://107.173.251.156:5000/pStpStpNrs?language=english
-
-    {
-        "pStpStpNrs": [
-            292
-        ]
-    }
-
-Specific degree version:
-
-    http://107.173.251.156:5000/degree?pStpStpNr=292&language=english
-
-    {
-        "degree_id": "16 751",
-        "title": "[20081] Forestry and Wood Science",
-        "subtitle": "16 751 Forestry and Wood Science (20081, Master's program, discontinued)",
-        "curriculum_id": "20081",
-        "pStpStpNr": 292
-    }
-
-Curriculum of a degree version:
-
-    http://107.173.251.156:5000/curriculum?pStpStpNr=292&language=english
-    
-    {
-        "curriculum": {
-            "[20081] Forestry and Wood Science": {
-                "Required Modules": {
-                    "WZ4004": {
-                        "module_id": "WZ4004",
-                        "ects": 5.0,
-                        "weighting_factor": 1.0,
-                        "title": "[WZ4004] Methods of Research in Forest and Wood Science"
-                    },
-                    "WZ4005": {
-                        "module_id": "WZ4005",
-                        "ects": 5.0,
-                        "weighting_factor": 1.0,
-                        "title": "[WZ4005] Lecture Series"
-                    }
-                },
-                "Required Elective Optional Courses" : {...},
-                "WZ4001": {...},
-                "WZ4002": {...}
-    }
- 
-Modules of a degree version (flattened curriculum):
-
-    http://107.173.251.156:5000/modules?pStpStpNr=292&language=english
-    
-    {
-        "modules": [
-            {
-                "module_id": "WZ4004",
-                "ects": 5.0,
-                "weighting_factor": 1.0,
-                "title": "[WZ4004] Methods of Research in Forest and Wood Science"
-            },
-            {...},
-            {...},
-            ...
-        ]
-    }
-
-Specific module of a degree version:
-
-    http://107.173.251.156:5000/module?pStpStpNr=292&module_id=WZ4004&language=english
-
-    {
-        "module_id": "WZ4004",
-        "ects": 5.0,
-        "weighting_factor": 1.0,
-        "title": "[WZ4004] Methods of Research in Forest and Wood Science"
-    }
-
-Degree versions which contain a given module (sorted):
-    
-    http://107.173.251.156:5000/parents?module_id=WZ4004&language=english
-
-    {
-        "pStpStpNrs": [
-            292
-        ]
-    }
-
-All versions of a degree (sorted):
-
-    http://107.173.251.156:5000/degrees?degree_id=16_751&language=english
-
-    {
-        "pStpStpNrs": [
-            292
-        ]
-    }
+## API Endpoints
+1. Get the number of degrees and modules:
+```bash
+GET http://localhost:5000/
+```
+2. Get all degrees:
+```bash
+GET http://localhost:5000/degrees
+```
+3. Get the info of a specific degree:
+```bash
+GET http://localhost:5000/degree?degree_id=<degree_id>
+```
+4. Get the info of a specific module:
+```bash
+GET http://localhost:5000/module?module_id=<module_id>
+```
+5. Find a module by its number:
+```bash
+GET http://localhost:5000/find_module?nr=<module_number>
+```
+6. Get the modules of a degree:
+```bash
+GET http://localhost:5000/modules_of_degree?degree_id=<degree_id>[&valid_from=<valid_from>&valid_to=<valid_to>&degree_version=<degree_version>]
+```
