@@ -1,0 +1,26 @@
+type Degree {
+    id: ID!
+    number: String!
+    full_name_en: String
+    full_name_de: String
+    subtitle_en: String
+    subtitle_de: String
+    version: String!
+    modules: [Mapping]
+}
+
+type Module {
+    id: ID!
+    number: String!
+    name_en: String
+    name_de: String
+}
+
+type Mapping {
+    module: Module!
+    version: String!
+    ects: Int!
+    weighting_factor: Float!
+    valid_from: String!
+    valid_until: String
+}
