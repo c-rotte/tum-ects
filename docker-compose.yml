@@ -9,7 +9,7 @@ services:
       - MYSQL_DATABASE=database
   crawler:
     build:
-      dockerfile: Dockerfile.crawler
+      dockerfile: crawler/Dockerfile.crawler
       context: .
     container_name: tum-ects-crawler
     environment:
@@ -20,7 +20,7 @@ services:
       - "database"
   api:
     build:
-      dockerfile: Dockerfile.api
+      dockerfile: api/Dockerfile.api
       context: .
     container_name: tum-ects-api
     ports:

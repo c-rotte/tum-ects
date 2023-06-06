@@ -2,11 +2,11 @@ FROM python:3.10
 
 WORKDIR /app
 
-COPY ./api/requirements.txt .
+COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY ./api ./api
-COPY ./database ./database
+COPY . ./api
+COPY ../database ./database
 
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.11.0/wait /wait
 RUN chmod +x /wait
