@@ -1,3 +1,38 @@
+type ModuleInformation {
+    title: String!
+    number: String!
+    module_type: String
+    weekly_hours: Int
+    offered_in: String
+    lecturers: [String]
+    organization: String
+    content: String
+    previous_knowledge: String
+    objective: String
+    language: String
+    lerning_method: String
+    workload: String
+    dates_url: String
+    recommended_reading: String
+    note: String
+}
+
+type Module {
+    id: ID!
+    label: String!
+    information_en: ModuleInformation
+    information_de: ModuleInformation
+}
+
+type ModuleMapping {
+    module: Module!
+    version: String!
+    ects: Int!
+    weighting_factor: Float!
+    valid_from: String!
+    valid_until: String
+}
+
 type Degree {
     id: ID!
     number: String!
@@ -6,21 +41,5 @@ type Degree {
     subtitle_en: String
     subtitle_de: String
     version: String!
-    modules: [Mapping]
-}
-
-type Module {
-    id: ID!
-    number: String!
-    name_en: String
-    name_de: String
-}
-
-type Mapping {
-    module: Module!
-    version: String!
-    ects: Int!
-    weighting_factor: Float!
-    valid_from: String!
-    valid_until: String
+    modules: [ModuleMapping]
 }
