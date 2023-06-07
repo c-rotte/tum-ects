@@ -1,0 +1,64 @@
+query GetModuleByID($id: ID!) {
+  module(id: $id) {
+    id
+    label
+    information_en {
+      title
+      number
+      module_type
+    }
+    information_de {
+      title
+      number
+      module_type
+    }
+  }
+}
+
+query GetDegreeByID($id: ID!) {
+  degree(id: $id) {
+    id
+    number
+    full_name_en
+    full_name_de
+    version
+    modules {
+      module {
+        id
+        label
+      }
+      version
+      ects
+      weighting_factor
+      valid_from
+      valid_until
+    }
+  }
+}
+
+mutation UpdateDegree($degreeInput: DegreeInput!) {
+  updateDegree(degreeInput: $degreeInput) {
+    id
+    number
+    full_name_en
+    full_name_de
+    version
+  }
+}
+
+mutation UpdateModule($moduleInput: ModuleInput!) {
+  updateModule(moduleInput: $moduleInput) {
+    id
+    label
+    information_en {
+      title
+      number
+      module_type
+    }
+    information_de {
+      title
+      number
+      module_type
+    }
+  }
+}

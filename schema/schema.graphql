@@ -1,3 +1,68 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  module(id: ID!): Module
+  degree(id: ID!): Degree
+}
+
+type Mutation {
+  updateDegree(degreeInput: DegreeInput!): Degree
+  updateModule(moduleInput: ModuleInput!): Module
+}
+
+# Input types
+
+input ModuleInformationInput {
+    title: String!
+    number: String!
+    module_type: String
+    weekly_hours: Int
+    offered_in: String
+    lecturers: [String]
+    organization: String
+    content: String
+    previous_knowledge: String
+    objective: String
+    language: String
+    lerning_method: String
+    workload: String
+    dates_url: String
+    recommended_reading: String
+    note: String
+}
+
+input ModuleInput {
+    id: ID!
+    label: String!
+    information_en: ModuleInformationInput
+    information_de: ModuleInformationInput
+}
+
+input ModuleMappingInput {
+    module: ModuleInput!
+    version: String!
+    ects: Int!
+    weighting_factor: Float!
+    valid_from: String!
+    valid_until: String
+}
+
+input DegreeInput {
+    id: ID!
+    number: String!
+    full_name_en: String
+    full_name_de: String
+    subtitle_en: String
+    subtitle_de: String
+    version: String!
+    modules: [ModuleMappingInput]
+}
+
+# Types
+
 type ModuleInformation {
     title: String!
     number: String!

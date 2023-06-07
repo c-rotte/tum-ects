@@ -3,6 +3,7 @@ import string
 import requests
 from requests import RequestException
 from retry import retry
+
 import parser
 from collections.abc import Iterator
 
