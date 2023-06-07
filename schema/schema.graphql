@@ -17,26 +17,19 @@ type Mutation {
 
 input ModuleInformationInput {
     title: String!
-    number: String!
     module_type: String
     weekly_hours: Int
     offered_in: String
     lecturers: [String]
     organization: String
     content: String
-    previous_knowledge: String
-    objective: String
-    language: String
-    lerning_method: String
-    workload: String
     dates_url: String
-    recommended_reading: String
     note: String
 }
 
 input ModuleInput {
     id: ID!
-    label: String!
+    number: String!
     information_en: ModuleInformationInput
     information_de: ModuleInformationInput
 }
@@ -64,27 +57,34 @@ input DegreeInput {
 # Types
 
 type ModuleInformation {
-    title: String!
-    number: String!
-    module_type: String
-    weekly_hours: Int
-    offered_in: String
-    lecturers: [String]
-    organization: String
-    content: String
-    previous_knowledge: String
-    objective: String
+    info_version: String!
+    level: String
+    abbreviation: String
+    subtitle: String
+    duration: String
+    occurence: String
     language: String
-    lerning_method: String
-    workload: String
-    dates_url: String
-    recommended_reading: String
-    note: String
+    related_programs: String
+    work_load: String
+    contact_hours: String
+    self_study_hours: String
+    assessment_method: String
+    retake_next_semester: Boolean
+    retake_end_of_semester: Boolean
+    prerequisites: String
+    learning_outcomes: String
+    content: String
+    learning_methods: String
+    media: String
+    reading_list: String
+    responsibility: String
 }
 
 type Module {
     id: ID!
-    label: String!
+    number: String!
+    title_en: String
+    title_de: String
     information_en: ModuleInformation
     information_de: ModuleInformation
 }

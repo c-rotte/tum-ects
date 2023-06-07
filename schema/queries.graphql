@@ -1,17 +1,7 @@
 query GetModuleByID($id: ID!) {
   module(id: $id) {
     id
-    label
-    information_en {
-      title
-      number
-      module_type
-    }
-    information_de {
-      title
-      number
-      module_type
-    }
+    number
   }
 }
 
@@ -25,7 +15,7 @@ query GetDegreeByID($id: ID!) {
     modules {
       module {
         id
-        label
+        number
       }
       version
       ects
@@ -49,16 +39,6 @@ mutation UpdateDegree($degreeInput: DegreeInput!) {
 mutation UpdateModule($moduleInput: ModuleInput!) {
   updateModule(moduleInput: $moduleInput) {
     id
-    label
-    information_en {
-      title
-      number
-      module_type
-    }
-    information_de {
-      title
-      number
-      module_type
-    }
+    number
   }
 }

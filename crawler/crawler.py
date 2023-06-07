@@ -69,14 +69,41 @@ class Crawler:
             }
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
-    def modules(self) -> Iterator[str, str]:
+    def modules(self) -> Iterator[str, dict]:
         """
-        Output: A list of tuples containing module ID, English name, and German name, e.g.:
+        Output: A list of tuples containing module ID, label, and information e.g.:
         [
             ('98765', {
-                'name_en': 'Introduction to Data Science',
-                'name_de': 'Einführung in die Datenwissenschaft',
-                'nr': 'IN0001'
+                'title': 'Software Engineering for Business Applications',
+                'number': 'IN0001',
+                'information_en': {
+                    'SS23' : {
+                        'level': 'Module Level',
+                        'abbreviation': 'Abbreviation',
+                        'subtitle': 'Subtitle',
+                        'duration': 'Duration',
+                        'occurence': 'Occurence',
+                        'language': 'Language',
+                        'related_programs': 'Related Programs',
+                        'work_load': 'Total Hours',
+                        'contact_hours': 'Contact Hours',
+                        'self_study_hours': 'Self Study Hours',
+                        'assessment_method': 'Description of Achievement and Assessment Methods',
+                        'retake_next_semester': 'Exam retake next semester',
+                        'retake_end_of_semester': 'Exam retake at the end of semester',
+                        'prerequisites': 'Prerequisites (recommended)',
+                        'learning_outcomes': 'Intended Learning Outcomes',
+                        'content': 'Content',
+                        'learning_methods': 'Teaching and Learning Methods',
+                        'media': 'Media',
+                        'reading_list': 'Reading List',
+                        'responsibility': 'Name(s)',
+                    },
+                    ...
+                },
+                'information_de': {
+                    ...
+                }
             }),
             ...
         ]
@@ -87,25 +114,40 @@ class Crawler:
         number_of_pages = parser.module_page_number(res.text)
         for page_index in range(number_of_pages):
             # get the modules on the current page
-            res = requests.get(
-                f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules'
-                f'&pPageNr={page_index + 1}&pSort=2',
-                headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=True)}'})
-            modules_en = parser.parse_modules_on_page(res.text)
-            res = requests.get(
-                f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules'
-                f'&pPageNr={page_index + 1}&pSort=2',
-                headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=False)}'})
-            modules_de = parser.parse_modules_on_page(res.text)
-            all_module_ids = modules_en.keys() | modules_de.keys()
-            for module_id in all_module_ids:
-                name_en, nr_en = modules_en.get(module_id, (None, None))
-                name_de, nr_de = modules_de.get(module_id, (None, None))
-                yield (module_id, {
-                    "name_en": name_en,
-                    "name_de": name_de,
-                    "nr": nr_en if nr_en else nr_de
-                })
+            modules = {}
+            for english in [True, False]:
+                res = requests.get(
+                    f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules'
+                    f'&pPageNr={page_index + 1}&pSort=2',
+                    headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=english)}'})
+                modules = modules | parser.parse_modules_on_page(res.text)
+            for module_id, (module_name, module_number) in modules.items():
+                def get_module_information(english: bool) -> Iterator[str, dict]:
+                    lanugage_label = 'EN' if english else 'DE'
+                    res = requests.get(
+                        f'{self.url_base}/WBMODHB.wbShowMHBReadOnly?pKnotenNr={module_id}',
+                        headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=english)}'})
+                    tab_ids = parser.parse_module_info_tab_ids(res.text)
+                    for tab_id, tab_name in tab_ids.items():
+                        res = requests.get(
+                            f'{self.url_base}/wbModHB.cbLoadMHBTab?pKnotenNr={module_id}&pId={tab_id}'
+                            f'&pLanguage={lanugage_label}&pOrgNr=&pTabContainerId=',
+                            headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=english)}'})
+                        yield tab_name, parser.parse_module_info(res.text)
+
+                english_module_info = {
+                    tab_name: module_info for tab_name, module_info in get_module_information(english=True)
+                }
+                german_module_info = {
+                    tab_name: module_info for tab_name, module_info in get_module_information(english=False)
+                }
+
+                yield module_id, {
+                    "title": module_name,
+                    "number": module_number,
+                    "information_en": english_module_info,
+                    "information_de": german_module_info
+                }
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def module_degree_mappings(self, module_id: str) -> Iterator[str, dict]:
