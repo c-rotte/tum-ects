@@ -1,0 +1,73 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator svelte {
+  provider        = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
+
+generator crawler {
+  provider = "prisma-client-py"
+}
+
+model Degree {
+  id         Int                   @id
+  number     String                @unique
+  fullNameEN String?
+  fullNameDE String?
+  subtitleEN String?
+  subtitleDE String?
+  version    String
+  modules    ModuleDegreeContext[]
+}
+
+model ModuleDegreeContext {
+  id              String @id @default(cuid())
+  version         Int
+  ects            Float?
+  weightingFactor Float?
+  validFrom       String
+  validto         String
+  module          Module @relation(fields: [moduleId], references: [id])
+  moduleId        Int
+  Degree          Degree @relation(fields: [degreeId], references: [id])
+  degreeId        Int
+}
+
+model Module {
+  id                  Int                   @id
+  titleEN             String?
+  titleDE             String?
+  code                String
+  infos               ModuleInfo[]
+  ModuleDegreeContext ModuleDegreeContext[]
+}
+
+model ModuleInfo {
+  id                  String   @id @default(cuid())
+  version             String
+  level               String?
+  abbreviation        String?
+  subtitle            String?
+  duration            String?
+  occurence           String?
+  language            String?
+  relatedPrograms     String?
+  totalHours          Int?
+  contactHours        Int?
+  selfStudyHours      Int?
+  assessmentMethod    String?
+  retakeNextSemester  Boolean?
+  retakeEndOfSemester Boolean?
+  prerequisites       String?
+  learningOutcomes    String?
+  content             String?
+  learningMethods     String?
+  media               String?
+  readingList         String?
+  responsible         String?
+  Module              Module   @relation(fields: [moduleId], references: [id])
+  moduleId            Int
+}
