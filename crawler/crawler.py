@@ -74,8 +74,9 @@ class Crawler:
         Output: A list of tuples containing module ID, label, and information e.g.:
         [
             ('98765', {
-                'title': 'Software Engineering for Business Applications',
-                'number': 'IN0001',
+                'title_en': 'Software Engineering for Business Applications',
+                'title_de': 'Software Engineering for Business Applications',
+                'code': 'IN0001',
                 'information_en': {
                     'SS23' : {
                         'level': 'Module Level',
@@ -85,7 +86,7 @@ class Crawler:
                         'occurence': 'Occurence',
                         'language': 'Language',
                         'related_programs': 'Related Programs',
-                        'work_load': 'Total Hours',
+                        'total_hours': 'Total Hours',
                         'contact_hours': 'Contact Hours',
                         'self_study_hours': 'Self Study Hours',
                         'assessment_method': 'Description of Achievement and Assessment Methods',
@@ -97,7 +98,7 @@ class Crawler:
                         'learning_methods': 'Teaching and Learning Methods',
                         'media': 'Media',
                         'reading_list': 'Reading List',
-                        'responsibility': 'Name(s)',
+                        'responsible': 'Name(s)',
                     },
                     ...
                 },
@@ -120,8 +121,16 @@ class Crawler:
                     f'{self.url_base}/WBMODHB.cbShowMHBListe?pCaller=tabIdOrgModules'
                     f'&pPageNr={page_index + 1}&pSort=2',
                     headers={'cookie': f'PSESSIONID={self._get_p_session_id(english=english)}'})
+                language = "en" if english else "de"
+                parsed_modules = parser.parse_modules_on_page(res.text)
+                for module_id in parsed_modules:
+                    parsed_modules[module_id][f"name_{language}"] = parsed_modules[module_id].pop("name")
                 modules = modules | parser.parse_modules_on_page(res.text)
-            for module_id, (module_name, module_number) in modules.items():
+            for module_id, info in modules.items():
+                module_name_en = info["name_en"]
+                module_name_de = info["name_de"]
+                module_number = info["number"]
+
                 def get_module_information(english: bool) -> Iterator[str, dict]:
                     lanugage_label = 'EN' if english else 'DE'
                     res = requests.get(
@@ -143,8 +152,9 @@ class Crawler:
                 }
 
                 yield module_id, {
-                    "title": module_name,
-                    "number": module_number,
+                    "title_en": module_name_en,
+                    "title_de": module_name_de,
+                    "code": module_number,
                     "information_en": english_module_info,
                     "information_de": german_module_info
                 }

@@ -52,7 +52,10 @@ def parse_modules_on_page(text: str) -> dict:
         module_name = a_list[1].text
         module_number = td_list[1].text
         module_id = href.split("pKnotenNr=")[1].split("&")[0]
-        result[module_id] = (module_name, module_number)
+        result[module_id] = {
+            "name": module_name,
+            "number": module_number
+        }
     return result
 
 
@@ -100,7 +103,7 @@ def parse_module_info(text: str) -> dict:
             "occurence": find_entry(["Occurence", "Turnus"]),
             "language": find_entry(["Language", "Sprache"]),
             "related_programs": find_entry(["Related Programs", "Zugehörige Programme"]),
-            "work_load": find_entry(["Total Hours", "Gesamtstunden"]),
+            "total_hours": find_entry(["Total Hours", "Gesamtstunden"]),
             "contact_hours": find_entry(["Contact Hours", "Präsenzstunden"]),
             "self_study_hours": find_entry(["Self Study", "Eigenstudiumstunden"]),
             "assessment_method": find_entry(
@@ -114,7 +117,7 @@ def parse_module_info(text: str) -> dict:
             "learning_methods": find_entry(["Teaching and Learning Methods", "Lehr- und Lernmethode"]),
             "media": find_entry(["Media", "Medienformen"]),
             "reading_list": find_entry(["Reading List", "Literatur"]),
-            "responsibility": find_entry(["Name(s)", "Name(n)"]),
+            "responsible": find_entry(["Name(s)", "Name(n)"]),
         }
     return result
 
