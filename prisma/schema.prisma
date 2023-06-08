@@ -6,7 +6,7 @@ datasource db {
 generator svelte {
   provider        = "prisma-client-js"
   previewFeatures = ["jsonProtocol"]
-  output          = "./js"
+  output          = "../tumgrades/node_modules/.prisma/client"
 }
 
 generator crawler {
