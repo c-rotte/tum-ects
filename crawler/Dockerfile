@@ -6,11 +6,9 @@ COPY requirements.txt .
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY . ./crawler
-COPY ../database ./database
+COPY . .
 
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.11.0/wait /wait
 RUN chmod +x /wait
 
-ENV PYTHONPATH "${PYTHONPATH}:/app"
-CMD ["/bin/bash", "-c", "/wait; python3 ./crawler/main.py"]
+CMD ["/bin/bash", "-c", "/wait; python3 /app/main.py"]
