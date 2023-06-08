@@ -130,3 +130,10 @@ dmypy.json
 
 # PyCharm
 .idea
+
+# Prisma
+package.json
+package-lock.json
+node_modules/
+prisma/js
+prisma/py

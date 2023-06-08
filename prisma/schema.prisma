@@ -6,10 +6,13 @@ datasource db {
 generator svelte {
   provider        = "prisma-client-js"
   previewFeatures = ["jsonProtocol"]
+  output          = "./js"
 }
 
 generator crawler {
   provider = "prisma-client-py"
+  recursive_type_depth = -1
+  output   = "./py"
 }
 
 model Degree {
