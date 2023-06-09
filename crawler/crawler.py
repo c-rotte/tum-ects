@@ -3,17 +3,20 @@ import string
 import requests
 from requests import RequestException
 from retry import retry
+from prisma.types import DegreeCreateInput
+from prisma.models import Degree
 
 import parser
 from collections.abc import Iterator
 
 
 class Crawler:
-
     def __init__(self):
         self.url_base = "https://campus.tum.de/tumonline/pl/ui/$ctx"
-        self.german_p_session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=64))
-        self.english_p_session_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=64))
+        self.german_p_session_id = ''.join(random.choices(
+            string.ascii_uppercase + string.digits, k=64))
+        self.english_p_session_id = ''.join(random.choices(
+            string.ascii_uppercase + string.digits, k=64))
         self._switch_to_english(self.english_p_session_id)
 
     def _get_p_session_id(self, english: bool) -> str:
@@ -21,6 +24,12 @@ class Crawler:
             return self.english_p_session_id
         else:
             return self.german_p_session_id
+
+    def crawl(self):
+        # First get all degrees
+        for degree in self.degrees():
+            print(f"writing {degree}...")
+            Degree.prisma().create(data=degree)
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def _switch_to_english(self, p_session_id) -> None:
@@ -30,7 +39,7 @@ class Crawler:
                       data={'language': 'EN'})
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
-    def degrees(self) -> dict:
+    def degrees(self) -> Iterator[DegreeCreateInput]:
         """
         Output: A dictionary of degrees, e.g.:
         {
@@ -59,14 +68,21 @@ class Crawler:
             german_degree = parser.parse_degree(res.text)
             if not english_degree or not german_degree:
                 continue
-            yield degree_id, {
-                "nr": english_degree["nr"],
-                "full_name_en": english_degree["full_name"],
-                "subtitle_en": english_degree["subtitle"],
-                "full_name_de": german_degree["full_name"],
-                "subtitle_de": german_degree["subtitle"],
-                "version": english_degree["version"]
-            }
+            yield DegreeCreateInput(id=degree_id,
+                                    version=english_degree["version"],
+                                    number=english_degree["nr"],
+                                    fullNameEN=english_degree["subtitle"],
+                                    subtitleEN=english_degree["subtitle"],
+                                    fullNameDE=german_degree["full_name"],
+                                    subtitleDE=german_degree["subtitle"])
+            # yield degree_id, {
+            #     "nr": english_degree["nr"],
+            #     "full_name_en": english_degree["full_name"],
+            #     "subtitle_en": english_degree["subtitle"],
+            #     "full_name_de": german_degree["full_name"],
+            #     "subtitle_de": german_degree["subtitle"],
+            #     "version": english_degree["version"]
+            # }
 
     @retry(exceptions=RequestException, tries=10, delay=10, backoff=2)
     def modules(self) -> Iterator[str, dict]:
@@ -124,7 +140,8 @@ class Crawler:
                 language = "en" if english else "de"
                 parsed_modules = parser.parse_modules_on_page(res.text)
                 for module_id in parsed_modules:
-                    parsed_modules[module_id][f"name_{language}"] = parsed_modules[module_id].pop("name")
+                    parsed_modules[module_id][f"name_{language}"] = parsed_modules[module_id].pop(
+                        "name")
                 modules = modules | parser.parse_modules_on_page(res.text)
             for module_id, info in modules.items():
                 module_name_en = info["name_en"]

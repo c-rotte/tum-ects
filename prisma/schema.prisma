@@ -12,7 +12,7 @@ generator svelte {
 generator crawler {
   provider = "prisma-client-py"
   recursive_type_depth = -1
-  output   = "./py"
+  output   = "../crawler/venv/lib/python3.11/site-packages/prisma"
 }
 
 model Degree {
