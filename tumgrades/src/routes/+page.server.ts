@@ -2,8 +2,8 @@ import { PrismaClient } from '@prisma/client';
 
 export async function load() {
 	const prisma = new PrismaClient();
-	const modules = await prisma.module.findMany();
+	const degrees = await prisma.degree.findMany();
 	return {
-		modules: modules
+		degrees: degrees
 	};
 }
