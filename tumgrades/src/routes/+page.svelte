@@ -1,4 +1,8 @@
 <script lang="ts">
+	import type { Degree } from '@prisma/client';
+	export function printDegree(degree: Degree) {
+		return `${degree.number}-${degree.fullNameDE}: (${degree.subtitleDE})`;
+	}
 	export let data;
 </script>
 
@@ -6,6 +10,6 @@
 <p>This is work in progress :(</p>
 <ul>
 	{#each data.degrees as degree}
-		<li>{degree}</li>
+		<li>{printDegree(degree)}</li>
 	{/each}
 </ul>
